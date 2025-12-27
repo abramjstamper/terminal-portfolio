@@ -9,6 +9,66 @@ import { versionInfo } from '@/config/version';
 const SECTIONS = ['about', 'experience', 'skills', 'projects', 'contact', 'resume'] as const;
 type Section = typeof SECTIONS[number];
 
+// Helper to check if args contain help flag
+function hasHelpFlag(args: string[]): boolean {
+  return args.includes('-h') || args.includes('--help');
+}
+
+// Helper to create command help output
+function createHelpOutput(cmd: Command): CommandResult {
+  return {
+    output: (
+      <div className="space-y-2">
+        <div>
+          <span className="text-terminal-prompt font-bold">{cmd.name}</span>
+          <span className="text-terminal-muted"> - {cmd.description}</span>
+        </div>
+        {cmd.usage && (
+          <div>
+            <span className="text-terminal-prompt">Usage:</span>{' '}
+            <span className="text-terminal-text">{cmd.usage}</span>
+          </div>
+        )}
+        {cmd.options && (
+          <div className="mt-2">
+            <div className="text-terminal-prompt">Options:</div>
+            <div className="pl-2 space-y-1">
+              {cmd.options.map((opt, i) => (
+                <div key={i}>
+                  <span className="text-terminal-link">{opt.flag}</span>{' '}
+                  <span className="text-terminal-muted">{opt.description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    ),
+  };
+}
+
+// Helper to get browser info
+function getBrowserInfo(): Record<string, string> {
+  const nav = typeof navigator !== 'undefined' ? navigator : null;
+  const win = typeof window !== 'undefined' ? window : null;
+  const screen = typeof window !== 'undefined' ? window.screen : null;
+
+  return {
+    'User Agent': nav?.userAgent || 'Unknown',
+    'Platform': nav?.platform || 'Unknown',
+    'Language': nav?.language || 'Unknown',
+    'Languages': nav?.languages?.join(', ') || 'Unknown',
+    'Cookies Enabled': nav?.cookieEnabled ? 'Yes' : 'No',
+    'Online': nav?.onLine ? 'Yes' : 'No',
+    'Screen Resolution': screen ? `${screen.width}x${screen.height}` : 'Unknown',
+    'Color Depth': screen ? `${screen.colorDepth}-bit` : 'Unknown',
+    'Viewport': win ? `${win.innerWidth}x${win.innerHeight}` : 'Unknown',
+    'Device Pixel Ratio': win ? `${win.devicePixelRatio}x` : 'Unknown',
+    'Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+    'Touch Support': nav && 'maxTouchPoints' in nav ? (nav.maxTouchPoints > 0 ? 'Yes' : 'No') : 'Unknown',
+  };
+}
+
 // Helper to create styled output
 function createSection(title: string, content: React.ReactNode): React.ReactNode {
   return (
@@ -51,7 +111,14 @@ const lsCommand: Command = {
   name: 'ls',
   description: 'List available sections',
   usage: 'ls [section]',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
   handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(lsCommand);
+    }
+
     // If no args, list all sections
     if (args.length === 0) {
       return {
@@ -85,7 +152,14 @@ const cdCommand: Command = {
   name: 'cd',
   description: 'Change directory (limited support)',
   usage: 'cd [section]',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
   handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(cdCommand);
+    }
+
     if (args.length === 0) {
       return {
         output: `This is a flat file system. Use 'cat <section>' to view contents.\nAvailable sections: ${SECTIONS.join(', ')}`,
@@ -110,7 +184,14 @@ const catCommand: Command = {
   name: 'cat',
   description: 'Display section content',
   usage: 'cat <section>',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
   handler: (args) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(catCommand);
+    }
+
     const section = args[0]?.toLowerCase() as Section;
 
     if (!section) {
@@ -271,7 +352,14 @@ const catCommand: Command = {
 const clearCommand: Command = {
   name: 'clear',
   description: 'Clear terminal screen',
-  handler: (_args: string[]) => {
+  usage: 'clear',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
+  handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(clearCommand);
+    }
     return { output: '', clear: true };
   },
 };
@@ -279,7 +367,14 @@ const clearCommand: Command = {
 const historyCommand: Command = {
   name: 'history',
   description: 'Show command history',
-  handler: (_args: string[], history?: string[]) => {
+  usage: 'history',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
+  handler: (args: string[], history?: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(historyCommand);
+    }
     if (!history || history.length === 0) {
       return { output: 'No commands in history' };
     }
@@ -301,7 +396,14 @@ const historyCommand: Command = {
 const exportCommand: Command = {
   name: 'export',
   description: 'Download resume PDF',
-  handler: (_args: string[]) => {
+  usage: 'export',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
+  handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(exportCommand);
+    }
     // Trigger download
     const link = document.createElement('a');
     link.href = siteConfig.resume.pdfUrl;
@@ -319,7 +421,14 @@ const exportCommand: Command = {
 const motdCommand: Command = {
   name: 'motd',
   description: 'Show welcome message',
-  handler: (_args: string[]) => {
+  usage: 'motd',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
+  handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(motdCommand);
+    }
     return {
       output: (
         <div className="space-y-2">
@@ -346,7 +455,14 @@ const motdCommand: Command = {
 const whoamiCommand: Command = {
   name: 'whoami',
   description: 'Display user identity',
-  handler: (_args: string[]) => {
+  usage: 'whoami',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
+  handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(whoamiCommand);
+    }
     return {
       output: (
         <div className="space-y-1 text-terminal-text">
@@ -365,7 +481,14 @@ const whoamiCommand: Command = {
 const pwdCommand: Command = {
   name: 'pwd',
   description: 'Print working directory',
-  handler: (_args: string[]) => {
+  usage: 'pwd',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
+  handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(pwdCommand);
+    }
     return { output: '/home/guest/portfolio' };
   },
 };
@@ -373,7 +496,14 @@ const pwdCommand: Command = {
 const dateCommand: Command = {
   name: 'date',
   description: 'Display current date and time',
-  handler: (_args: string[]) => {
+  usage: 'date',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
+  handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(dateCommand);
+    }
     return { output: new Date().toString() };
   },
 };
@@ -382,7 +512,13 @@ const echoCommand: Command = {
   name: 'echo',
   description: 'Display a message',
   usage: 'echo <message>',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
   handler: (args) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(echoCommand);
+    }
     return { output: args.join(' ') || '' };
   },
 };
@@ -391,7 +527,14 @@ const themeCommand: Command = {
   name: 'theme',
   description: 'List or switch terminal themes',
   usage: 'theme [name]',
+  options: [
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
   handler: (args: string[]) => {
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(themeCommand);
+    }
+
     const themeIds = getThemeIds();
     const currentId = getCurrentThemeId();
 
@@ -450,16 +593,49 @@ const themeCommand: Command = {
 const unameCommand: Command = {
   name: 'uname',
   description: 'Display system information',
-  usage: 'uname [-a]',
+  usage: 'uname [-a] [-n] [-h]',
+  options: [
+    { flag: '-a, --all', description: 'Show all system information' },
+    { flag: '-n, --node', description: 'Show browser/client information' },
+    { flag: '-h, --help', description: 'Show this help message' },
+  ],
   handler: (args: string[]) => {
-    const showAll = args.includes('-a');
+    // Handle help flag
+    if (hasHelpFlag(args)) {
+      return createHelpOutput(unameCommand);
+    }
 
+    const showAll = args.includes('-a') || args.includes('--all');
+    const showNode = args.includes('-n') || args.includes('--node');
+
+    // Show browser info
+    if (showNode) {
+      const browserInfo = getBrowserInfo();
+      return {
+        output: (
+          <div className="space-y-2">
+            <div className="text-terminal-prompt font-bold">Client Information:</div>
+            <div className="space-y-1">
+              {Object.entries(browserInfo).map(([key, value]) => (
+                <div key={key}>
+                  <span className="text-terminal-link">{key}:</span>{' '}
+                  <span className="text-terminal-text text-sm">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+      };
+    }
+
+    // Default: just show name and version
     if (!showAll) {
       return {
         output: `${versionInfo.name} v${versionInfo.version}`,
       };
     }
 
+    // Show all system info
     return {
       output: (
         <div className="space-y-2">

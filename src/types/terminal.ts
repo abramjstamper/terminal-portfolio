@@ -23,10 +23,16 @@ export interface CommandResult {
   clear?: boolean;
 }
 
+export interface CommandOption {
+  flag: string;
+  description: string;
+}
+
 export interface Command {
   name: string;
   description: string;
   usage?: string;
+  options?: CommandOption[];
   handler: (args: string[], history?: string[]) => CommandResult;
 }
 
