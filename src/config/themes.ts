@@ -98,16 +98,16 @@ export const themes: Record<string, Theme> = {
   'high-contrast': {
     id: 'high-contrast',
     name: 'High Contrast',
-    description: 'Maximum readability (WCAG AAA)',
+    description: 'JetBrains-inspired vivid colors',
     colors: {
-      bg: '#000000',
-      text: '#ffffff',
-      prompt: '#ffff00',
-      accent: '#00ffff',
-      error: '#ff6666',
-      success: '#66ff66',
-      link: '#66ccff',
-      muted: '#808080',
+      bg: '#0d0d0d',
+      text: '#e4e4e4',
+      prompt: '#ff9e4a',      // bright orange (keywords)
+      accent: '#ffc66d',      // golden yellow
+      error: '#ff5555',       // bright red
+      success: '#a5c261',     // bright green (strings)
+      link: '#68abdf',        // bright blue
+      muted: '#808080',       // gray (comments)
     },
     effects: {
       scanlines: false,
