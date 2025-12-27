@@ -57,10 +57,12 @@ function TerminalLineDisplay({ line }: TerminalLineDisplayProps) {
 function Prompt() {
   return (
     <span className="mr-2 shrink-0">
-      <span className="text-terminal-prompt">guest</span>
-      <span className="text-terminal-text">@</span>
+      <span className="text-terminal-success">guest</span>
+      <span className="text-terminal-muted">@</span>
       <span className="text-terminal-link">portfolio</span>
-      <span className="text-terminal-text">:~$ </span>
+      <span className="text-terminal-muted">:</span>
+      <span className="text-terminal-prompt">~</span>
+      <span className="text-terminal-muted">$ </span>
     </span>
   );
 }
