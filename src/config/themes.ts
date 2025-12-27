@@ -136,16 +136,16 @@ export const themes: Record<string, Theme> = {
   rainbow: {
     id: 'rainbow',
     name: 'Rainbow',
-    description: 'Colorful rainbow theme',
+    description: 'Vibrant rainbow colors',
     colors: {
-      bg: '#1a1a2e',
+      bg: '#0f0f1a',
       text: '#ffffff',         // white text
-      prompt: '#ff6b6b',       // red
-      accent: '#feca57',       // yellow/orange
-      error: '#ff6b6b',        // red
-      success: '#1dd1a1',      // green/teal
-      link: '#54a0ff',         // blue
-      muted: '#a55eea',        // purple
+      prompt: '#ff0000',       // pure red
+      accent: '#ff8800',       // orange
+      error: '#ff0055',        // magenta-red
+      success: '#00ff00',      // pure green
+      link: '#00aaff',         // bright blue
+      muted: '#aa00ff',        // purple/violet
     },
     effects: {
       scanlines: false,
