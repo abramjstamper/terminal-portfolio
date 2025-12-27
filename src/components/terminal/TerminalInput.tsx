@@ -89,7 +89,7 @@ export function TerminalInput({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          className="w-full bg-transparent text-terminal-green outline-none caret-transparent font-mono"
+          className="w-full bg-transparent text-terminal-text outline-none caret-transparent font-mono"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
@@ -98,11 +98,11 @@ export function TerminalInput({
         />
         {/* Visual cursor overlay */}
         <div
-          className="absolute top-0 left-0 pointer-events-none text-terminal-green font-mono whitespace-pre"
+          className="absolute top-0 left-0 pointer-events-none text-terminal-text font-mono whitespace-pre"
           aria-hidden="true"
         >
           {value}
-          <span className="animate-blink bg-terminal-green text-terminal-bg">
+          <span className="animate-blink bg-terminal-text text-terminal-bg">
             &nbsp;
           </span>
         </div>
@@ -114,10 +114,10 @@ export function TerminalInput({
 function Prompt() {
   return (
     <span className="mr-2 shrink-0 select-none">
-      <span className="text-terminal-amber">guest</span>
-      <span className="text-white">@</span>
-      <span className="text-terminal-blue">portfolio</span>
-      <span className="text-white">:~$ </span>
+      <span className="text-terminal-prompt">guest</span>
+      <span className="text-terminal-text">@</span>
+      <span className="text-terminal-link">portfolio</span>
+      <span className="text-terminal-text">:~$ </span>
     </span>
   );
 }

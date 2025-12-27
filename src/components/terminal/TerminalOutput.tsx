@@ -24,27 +24,27 @@ function TerminalLineDisplay({ line }: TerminalLineDisplayProps) {
       return (
         <div className="flex">
           <Prompt />
-          <span className="text-terminal-green">{line.content}</span>
+          <span className="text-terminal-text">{line.content}</span>
         </div>
       );
 
     case 'output':
       return (
-        <div className="text-gray-300 pl-0">
+        <div className="text-terminal-text pl-0">
           {line.content}
         </div>
       );
 
     case 'error':
       return (
-        <div className="text-red-500 pl-0">
+        <div className="text-terminal-error pl-0">
           {line.content}
         </div>
       );
 
     case 'system':
       return (
-        <div className="text-terminal-amber pl-0">
+        <div className="text-terminal-prompt pl-0">
           {line.content}
         </div>
       );
@@ -57,10 +57,10 @@ function TerminalLineDisplay({ line }: TerminalLineDisplayProps) {
 function Prompt() {
   return (
     <span className="mr-2 shrink-0">
-      <span className="text-terminal-amber">guest</span>
-      <span className="text-white">@</span>
-      <span className="text-terminal-blue">portfolio</span>
-      <span className="text-white">:~$ </span>
+      <span className="text-terminal-prompt">guest</span>
+      <span className="text-terminal-text">@</span>
+      <span className="text-terminal-link">portfolio</span>
+      <span className="text-terminal-text">:~$ </span>
     </span>
   );
 }
