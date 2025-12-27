@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { themes, DEFAULT_THEME, type Theme } from '@/config/themes';
 
 const STORAGE_KEY = 'terminal-theme';
@@ -51,11 +51,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     document.body.style.color = theme.colors.text;
   }, [theme]);
 
-  const setTheme = (id: string) => {
+  const setTheme = useCallback((id: string) => {
     if (themes[id]) {
       setThemeId(id);
     }
-  };
+  }, []);
 
   return (
     <ThemeContext.Provider

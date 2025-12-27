@@ -133,6 +133,25 @@ export const themes: Record<string, Theme> = {
       glow: false,
     },
   },
+  pride: {
+    id: 'pride',
+    name: 'Pride',
+    description: 'Rainbow pride colors',
+    colors: {
+      bg: '#1a1a2e',
+      text: '#ffffff',
+      prompt: '#ff6b6b',      // red
+      accent: '#ffd93d',      // yellow
+      error: '#ff6b6b',       // red
+      success: '#6bcb77',     // green
+      link: '#4d96ff',        // blue
+      muted: '#9d4edd',       // purple
+    },
+    effects: {
+      scanlines: false,
+      glow: true,
+    },
+  },
 };
 
 export const DEFAULT_THEME = 'green';
