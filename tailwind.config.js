@@ -11,10 +11,18 @@ export default {
       },
       colors: {
         terminal: {
+          bg: 'var(--color-bg)',
+          text: 'var(--color-text)',
+          prompt: 'var(--color-prompt)',
+          accent: 'var(--color-accent)',
+          error: 'var(--color-error)',
+          success: 'var(--color-success)',
+          link: 'var(--color-link)',
+          muted: 'var(--color-muted)',
+          // Keep static colors for fallbacks
           green: '#00ff00',
           amber: '#ffb000',
           blue: '#00aaff',
-          bg: '#0a0a0a',
         },
       },
       animation: {
