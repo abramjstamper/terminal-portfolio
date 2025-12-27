@@ -525,68 +525,98 @@ const echoCommand: Command = {
 
 const themeCommand: Command = {
   name: 'theme',
-  description: 'List or switch terminal themes',
-  usage: 'theme [name]',
+  description: 'Display or change terminal theme',
+  usage: 'theme [-l] [-s <name>] [name]',
   options: [
-    { flag: '-h, --help', description: 'Show this help message' },
+    { flag: '-l, --list', description: 'List all available themes' },
+    { flag: '-s, --set <name>', description: 'Set the theme' },
+    { flag: '-h, --help', description: 'Show available themes and usage' },
   ],
   handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(themeCommand);
-    }
-
     const themeIds = getThemeIds();
     const currentId = getCurrentThemeId();
 
-    // No args - list available themes
-    if (args.length === 0) {
-      return {
-        output: (
-          <div className="space-y-2">
-            <div className="text-terminal-prompt font-bold">Available themes:</div>
-            <div className="space-y-1">
-              {themeIds.map(id => {
-                const theme = themes[id];
-                const isCurrent = id === currentId;
-                return (
-                  <div key={id} className="flex gap-2">
-                    <span className={isCurrent ? 'text-terminal-success' : 'text-terminal-link'}>
-                      {isCurrent ? '* ' : '  '}{id}
-                    </span>
-                    <span className="text-terminal-muted">- {theme.description}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="text-terminal-muted text-sm mt-2">
-              Use 'theme &lt;name&gt;' to switch themes
-            </div>
-          </div>
-        ),
-      };
-    }
+    // Helper to list themes
+    const listThemes = () => (
+      <div className="space-y-2">
+        <div className="text-terminal-prompt font-bold">Available themes:</div>
+        <div className="space-y-1">
+          {themeIds.map(id => {
+            const theme = themes[id];
+            const isCurrent = id === currentId;
+            return (
+              <div key={id} className="flex gap-2">
+                <span className={isCurrent ? 'text-terminal-success' : 'text-terminal-link'}>
+                  {isCurrent ? '* ' : '  '}{id}
+                </span>
+                <span className="text-terminal-muted">- {theme.description}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="text-terminal-muted text-sm mt-2">
+          Use 'theme &lt;name&gt;' or 'theme -s &lt;name&gt;' to switch themes
+        </div>
+      </div>
+    );
 
-    // Switch theme
-    const themeId = args[0].toLowerCase();
-    if (!themeIds.includes(themeId)) {
-      return {
-        output: `Unknown theme: ${args[0]}\nAvailable: ${themeIds.join(', ')}`,
-        isError: true,
-      };
-    }
+    // Helper to set theme
+    const setTheme = (themeId: string) => {
+      const normalizedId = themeId.toLowerCase();
+      if (!themeIds.includes(normalizedId)) {
+        return {
+          output: `Unknown theme: ${themeId}\nAvailable: ${themeIds.join(', ')}`,
+          isError: true,
+        };
+      }
 
-    const success = setThemeRegistry(themeId);
-    if (!success) {
-      return {
-        output: 'Failed to set theme (theme provider not initialized)',
-        isError: true,
-      };
-    }
+      const success = setThemeRegistry(normalizedId);
+      if (!success) {
+        return {
+          output: 'Failed to set theme (theme provider not initialized)',
+          isError: true,
+        };
+      }
 
-    const theme = themes[themeId];
-    return {
-      output: `Theme switched to: ${theme.name}`,
+      const theme = themes[normalizedId];
+      return {
+        output: `Theme switched to: ${theme.name}`,
+      };
     };
+
+    // -h or --help: show theme list (same as -l but with help context)
+    if (hasHelpFlag(args)) {
+      return { output: listThemes() };
+    }
+
+    // -l or --list: list available themes
+    if (args.includes('-l') || args.includes('--list')) {
+      return { output: listThemes() };
+    }
+
+    // -s or --set: set theme
+    const setIndex = args.findIndex(a => a === '-s' || a === '--set');
+    if (setIndex !== -1) {
+      const themeName = args[setIndex + 1];
+      if (!themeName) {
+        return {
+          output: 'Usage: theme -s <name>\nUse "theme -l" to list available themes.',
+          isError: true,
+        };
+      }
+      return setTheme(themeName);
+    }
+
+    // No args: show current theme
+    if (args.length === 0) {
+      const theme = themes[currentId];
+      return {
+        output: `${currentId} - ${theme.description}`,
+      };
+    }
+
+    // Direct theme name: set theme
+    return setTheme(args[0]);
   },
 };
 
