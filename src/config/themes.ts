@@ -26,12 +26,12 @@ export const themes: Record<string, Theme> = {
     colors: {
       bg: '#0a0a0a',
       text: '#00ff00',
-      prompt: '#ffb000',
-      accent: '#00ffff',
-      error: '#ff0000',
-      success: '#00ff00',
-      link: '#00aaff',
-      muted: '#4a4a4a',
+      prompt: '#ffb000',       // amber - distinct from green
+      accent: '#00ffff',       // cyan
+      error: '#ff4444',        // red
+      success: '#44ff88',      // lighter green - distinct from text
+      link: '#00aaff',         // blue
+      muted: '#669966',        // muted green - visible but subtle
     },
     effects: {
       scanlines: true,
@@ -45,12 +45,12 @@ export const themes: Record<string, Theme> = {
     colors: {
       bg: '#0a0a0a',
       text: '#ffb000',
-      prompt: '#ff8c00',
-      accent: '#ffd700',
-      error: '#ff4444',
-      success: '#ffb000',
-      link: '#ffc966',
-      muted: '#5a4a2a',
+      prompt: '#ff6600',       // orange - distinct from amber
+      accent: '#ffdd44',       // yellow
+      error: '#ff4444',        // red
+      success: '#88cc44',      // green - contrasts with amber
+      link: '#ffcc66',         // light amber
+      muted: '#997744',        // muted amber
     },
     effects: {
       scanlines: true,
@@ -64,12 +64,12 @@ export const themes: Record<string, Theme> = {
     colors: {
       bg: '#0a0a14',
       text: '#00aaff',
-      prompt: '#00ffff',
-      accent: '#88ddff',
-      error: '#ff4466',
-      success: '#00ff88',
-      link: '#66ccff',
-      muted: '#3a4a5a',
+      prompt: '#00ffff',       // cyan
+      accent: '#88ddff',       // light blue
+      error: '#ff4466',        // red
+      success: '#00ff88',      // green
+      link: '#66ccff',         // lighter blue
+      muted: '#4477aa',        // muted blue
     },
     effects: {
       scanlines: true,
@@ -83,12 +83,12 @@ export const themes: Record<string, Theme> = {
     colors: {
       bg: '#000000',
       text: '#00ff41',
-      prompt: '#008f11',
+      prompt: '#88ff88',       // lighter green
       accent: '#00ff41',
       error: '#ff0000',
-      success: '#00ff41',
-      link: '#39ff14',
-      muted: '#003b00',
+      success: '#33ff77',      // slightly different green
+      link: '#66ffaa',         // cyan-green
+      muted: '#338833',        // dark green
     },
     effects: {
       scanlines: false,
@@ -98,16 +98,16 @@ export const themes: Record<string, Theme> = {
   'high-contrast': {
     id: 'high-contrast',
     name: 'High Contrast',
-    description: 'JetBrains-inspired vivid colors',
+    description: 'Windows-style high contrast',
     colors: {
-      bg: '#0d0d0d',
-      text: '#e4e4e4',
-      prompt: '#ff9e4a',      // bright orange (keywords)
-      accent: '#ffc66d',      // golden yellow
-      error: '#ff5555',       // bright red
-      success: '#a5c261',     // bright green (strings)
-      link: '#68abdf',        // bright blue
-      muted: '#808080',       // gray (comments)
+      bg: '#000000',           // pure black
+      text: '#ffffff',         // pure white
+      prompt: '#ffff00',       // yellow (like Windows HC)
+      accent: '#00ffff',       // cyan
+      error: '#ff0000',        // pure red
+      success: '#00ff00',      // pure green
+      link: '#00ffff',         // cyan (Windows HC links)
+      muted: '#888888',        // gray
     },
     effects: {
       scanlines: false,
@@ -121,31 +121,31 @@ export const themes: Record<string, Theme> = {
     colors: {
       bg: '#f5f5f5',
       text: '#1a1a1a',
-      prompt: '#0066cc',
-      accent: '#cc6600',
-      error: '#cc0000',
-      success: '#008800',
-      link: '#0066cc',
-      muted: '#888888',
+      prompt: '#0066cc',       // blue
+      accent: '#cc6600',       // orange
+      error: '#cc0000',        // red
+      success: '#008800',      // green
+      link: '#0066cc',         // blue
+      muted: '#666666',        // gray
     },
     effects: {
       scanlines: false,
       glow: false,
     },
   },
-  pride: {
-    id: 'pride',
-    name: 'Pride',
-    description: 'Rainbow pride colors',
+  rainbow: {
+    id: 'rainbow',
+    name: 'Rainbow',
+    description: 'Colorful rainbow theme',
     colors: {
       bg: '#1a1a2e',
-      text: '#ffffff',
-      prompt: '#ff6b6b',      // red
-      accent: '#ffd93d',      // yellow
-      error: '#ff6b6b',       // red
-      success: '#6bcb77',     // green
-      link: '#4d96ff',        // blue
-      muted: '#9d4edd',       // purple
+      text: '#ffffff',         // white text
+      prompt: '#ff6b6b',       // red
+      accent: '#feca57',       // yellow/orange
+      error: '#ff6b6b',        // red
+      success: '#1dd1a1',      // green/teal
+      link: '#54a0ff',         // blue
+      muted: '#a55eea',        // purple
     },
     effects: {
       scanlines: false,
