@@ -8,7 +8,7 @@ const COMPANY_LOGOS: Record<string, { light: string; dark?: string; scale?: numb
   'Aptiv Connected Services': { light: '/logos/aptiv.svg', dark: '/logos/aptiv-dark.svg' },
   'Aptiv PLC': { light: '/logos/aptiv.svg', dark: '/logos/aptiv-dark.svg' },
   'Vibenomics (Fuzic Media)': { light: '/logos/vibenomics.svg', dark: '/logos/vibenomics-dark.svg' },
-  'Taylor University': { light: '/logos/taylor.svg', dark: '/logos/taylor-dark.svg', scale: 1.5 },
+  'Taylor University': { light: '/logos/taylor.svg', dark: '/logos/taylor-dark.svg', scale: 2.5 },
 }
 
 const NODE_WIDTH = 180
