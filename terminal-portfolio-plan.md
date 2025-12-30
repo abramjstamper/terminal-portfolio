@@ -778,6 +778,58 @@ src/config/data/site-data.ts   # Actual content
 src/config/content.ts          # Type definitions
 ```
 
+### Actual Content (Abram Stamper)
+
+**Profile:**
+- Name: Abram Stamper
+- Title: Sr Full Stack Software Engineer
+- Bio: Entrepreneurial-minded full stack software engineer who employs inventive thinking to solve tomorrow's challenges today. A generalist by nature with production experience in a variety of domains: Advertising, Automotive, Cybersecurity, & IoT.
+
+**Experience:**
+
+1. **Principal Software Engineer** @ Palo Alto Networks (Oct 2023 - Present)
+   - Architected an internal data enrichment application from the ground up
+   - Guided the development team through project milestones and code reviews
+   - Broke down epics into actionable tickets for less experienced developers
+   - Technologies: Python, FastAPI, React, PostgreSQL, Kubernetes, GCP
+
+2. **Sr Staff Software Engineer** @ Palo Alto Networks (May 2022 - Oct 2023)
+   - Built uniform query & dashboard tool for Threat Researchers
+   - Crafted universal data search to improve researcher productivity
+   - Upleveled team observability, alerting, and metrics tooling
+   - Technologies: Python, React, Redis, PostgreSQL, Kubernetes
+
+3. **Cloud Architect** @ Aptiv Connected Services (Apr 2021 - May 2022)
+   - Architected cloud abstraction layer between partner clouds and internal platform
+   - Collaborated across 10 teams to deliver integrated solutions
+   - Completed numerous PoCs from design concept to production release
+   - Technologies: Azure, AWS, Kubernetes, Python, NodeJS
+
+4. **Advanced Software Engineer** @ Aptiv PLC (May 2018 - Mar 2021)
+   - Architected cloud components for pre-production IoT software product
+   - Designed real-time ECU data acquisition and analysis systems
+   - Awarded patent for Electronic Device Intrusion Detection (US11341238B2)
+   - Technologies: Azure, PostgreSQL, NodeJS, React, Python
+
+**Skills:**
+- Languages: Python 3.10+, TypeScript, JavaScript/ES6+, Java, SQL
+- Backend: FastAPI, Flask, NodeJS, REST APIs, Redis
+- Frontend: React, Redux, HTML/CSS, Tailwind CSS
+- Databases: PostgreSQL, MySQL, Redis, DynamoDB
+- Cloud & Infrastructure: AWS, GCP, Azure, Kubernetes, Docker
+- Tools & Practices: Git/GitHub, Agile/Scrum, Jira, Linux, CI/CD
+
+**Education:**
+- BS of Computer Science (2018) - Taylor University
+- Concentration in Software Engineering
+- Cumulative GPA 3.8
+
+**Contact:**
+- Email: abram.j.stamper@me.com
+- GitHub: github.com/abramjstamper
+- LinkedIn: linkedin.com/in/abramstamper
+- Website: abramstamper.com
+
 ---
 
 ## Directory Structure
