@@ -10,7 +10,6 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 - **Secondary**: History and accomplishments for job applications
 - **SEO**: Rank well when searching for your name on Google
 - **Accessibility**: WCAG compliant, screen reader friendly
-- **Future**: Architecture supports linking to SMB website (B2B IT consulting) without implementing initially
 
 ### Current Website
 - Domain: abramstamper.dev (primary), with redirects from other domains
