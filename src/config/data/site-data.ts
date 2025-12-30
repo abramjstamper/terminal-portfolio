@@ -13,9 +13,9 @@ A generalist by nature with production experience in a variety of domains: Adver
 
 I operate as a force multiplier by elevating & assisting others to create a positive impact on overall team performance. Strong customer-centric problem-solving skills with over a decade of product development experience.`,
     highlights: [
-      'Full-stack development across cloud, backend, and frontend',
-      'Patent holder: Electronic Device Intrusion Detection (US11341238B2)',
-      'Experience across Cybersecurity, Automotive, Advertising & IoT',
+      'Product-obsessed engineer who ships customer-focused solutions',
+      'Force multiplier through mentorship and elevating team performance',
+      'Radical ownership mentality with a bias for action',
     ],
   },
 
@@ -101,7 +101,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
   skills: [
     {
       name: 'AI & Automation',
-      skills: ['Claude Code', 'MCP Servers', 'Cursor', 'GitHub Copilot', 'Prompt Engineering'],
+      skills: ['Claude Code', 'ChatGPT', 'Claude', 'Gemini', 'MCP Servers', 'Prompt Engineering'],
     },
     {
       name: 'Languages',
@@ -113,7 +113,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     },
     {
       name: 'Frontend',
-      skills: ['React', 'Redux', 'HTML/CSS', 'Tailwind CSS', 'MUI', 'Bootstrap', 'Bulma'],
+      skills: ['React', 'Redux', 'HTML/CSS', 'Tailwind CSS', 'Material UI', 'Bootstrap', 'Bulma'],
     },
     {
       name: 'Databases',
