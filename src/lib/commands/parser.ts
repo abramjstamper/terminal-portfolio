@@ -1,78 +1,132 @@
-import type { ParsedCommand, ParsedInput } from '@/types/terminal';
+import type { ParsedCommand, CommandResult } from '../../types/terminal'
 
-/**
- * Parse a single command string into command and args
- */
-export function parseCommand(input: string): ParsedCommand {
-  const trimmed = input.trim();
-  const parts = trimmed.split(/\s+/).filter(Boolean);
-
-  return {
-    command: parts[0]?.toLowerCase() || '',
-    args: parts.slice(1),
-    raw: trimmed,
-  };
+export interface ParseResult {
+  commands: ParsedCommand[]
+  error?: string
 }
 
 /**
- * Parse input that may contain shell operators
- * Handles: && (chain), | (pipe - error), & (background - error)
+ * Parse a command string into individual commands
+ * Supports && operator for chaining
+ * Returns error for unsupported operators (|, &, ;)
  */
-export function parseInput(input: string): ParsedInput {
-  const trimmed = input.trim();
+export function parseCommandString(input: string): ParseResult {
+  const trimmed = input.trim()
+  if (!trimmed) {
+    return { commands: [] }
+  }
 
-  // Check for unsupported pipe operator
+  // Check for unsupported operators
   if (trimmed.includes('|') && !trimmed.includes('||')) {
     return {
-      type: 'error',
+      commands: [],
       error: 'Pipes are not supported in this terminal',
-    };
-  }
-
-  // Check for background operator (& at end, but not &&)
-  if (/[^&]&\s*$/.test(trimmed) || /^&\s*$/.test(trimmed)) {
-    return {
-      type: 'error',
-      error: 'Background execution is not supported in this terminal',
-    };
-  }
-
-  // Check for || (or operator)
-  if (trimmed.includes('||')) {
-    return {
-      type: 'error',
-      error: 'The || operator is not supported in this terminal',
-    };
-  }
-
-  // Handle && (command chaining)
-  if (trimmed.includes('&&')) {
-    const commandStrings = trimmed.split('&&').map(s => s.trim()).filter(Boolean);
-
-    if (commandStrings.length === 0) {
-      return {
-        type: 'error',
-        error: 'Syntax error: empty command',
-      };
     }
-
-    const commands = commandStrings.map(parseCommand);
-
-    return {
-      type: 'chain',
-      commands,
-    };
   }
 
-  // Single command
-  const parsed = parseCommand(trimmed);
+  if (/[^&]&[^&]/.test(trimmed) || trimmed.endsWith('&')) {
+    return {
+      commands: [],
+      error: 'Background execution is not supported',
+    }
+  }
 
-  return {
-    type: 'single',
-    commands: [parsed],
-  };
+  // Split by && operator
+  const commandStrings = trimmed.split(/\s*&&\s*/).filter(Boolean)
+
+  const commands: ParsedCommand[] = commandStrings.map((cmdStr) => {
+    const tokens = tokenize(cmdStr.trim())
+    return {
+      command: tokens[0] || '',
+      args: tokens.slice(1),
+    }
+  })
+
+  return { commands: commands.filter((c) => c.command) }
 }
 
-export function formatArgs(args: string[]): string {
-  return args.join(' ');
+/**
+ * Tokenize a single command string
+ * Handles quoted strings and escapes
+ */
+export function tokenize(input: string): string[] {
+  const tokens: string[] = []
+  let current = ''
+  let inQuote: string | null = null
+  let escape = false
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i]
+
+    if (escape) {
+      current += char
+      escape = false
+      continue
+    }
+
+    if (char === '\\') {
+      escape = true
+      continue
+    }
+
+    if ((char === '"' || char === "'") && !inQuote) {
+      inQuote = char
+      continue
+    }
+
+    if (char === inQuote) {
+      inQuote = null
+      continue
+    }
+
+    if (char === ' ' && !inQuote) {
+      if (current) {
+        tokens.push(current)
+        current = ''
+      }
+      continue
+    }
+
+    current += char
+  }
+
+  if (current) {
+    tokens.push(current)
+  }
+
+  return tokens
+}
+
+/**
+ * Check if args contain help flag
+ */
+export function hasHelpFlag(args: string[]): boolean {
+  return args.includes('-h') || args.includes('--help')
+}
+
+/**
+ * Format help output for a command
+ */
+export function formatHelp(
+  name: string,
+  description: string,
+  usage: string,
+  options?: { flag: string; description: string }[]
+): CommandResult {
+  const lines: string[] = [
+    `NAME`,
+    `    ${name} - ${description}`,
+    '',
+    `SYNOPSIS`,
+    `    ${usage}`,
+  ]
+
+  if (options && options.length > 0) {
+    lines.push('', 'OPTIONS')
+    options.forEach(({ flag, description }) => {
+      lines.push(`    ${flag.padEnd(16)} ${description}`)
+    })
+  }
+
+  return { output: lines.join('\n') }
 }

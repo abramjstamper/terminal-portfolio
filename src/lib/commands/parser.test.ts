@@ -1,133 +1,125 @@
-import { describe, it, expect } from 'vitest';
-import { parseCommand, parseInput } from './parser';
+import { describe, it, expect } from 'vitest'
+import { parseCommandString, tokenize, hasHelpFlag, formatHelp } from './parser'
 
-describe('parseCommand', () => {
-  it('parses a simple command', () => {
-    const result = parseCommand('help');
-    expect(result).toEqual({
-      command: 'help',
-      args: [],
-      raw: 'help',
-    });
-  });
+describe('tokenize', () => {
+  it('splits simple command', () => {
+    expect(tokenize('ls -l')).toEqual(['ls', '-l'])
+  })
 
-  it('parses a command with single argument', () => {
-    const result = parseCommand('cat about');
-    expect(result).toEqual({
-      command: 'cat',
-      args: ['about'],
-      raw: 'cat about',
-    });
-  });
+  it('handles multiple arguments', () => {
+    expect(tokenize('cat about experience')).toEqual(['cat', 'about', 'experience'])
+  })
 
-  it('parses a command with multiple arguments', () => {
-    const result = parseCommand('echo hello world');
-    expect(result).toEqual({
-      command: 'echo',
-      args: ['hello', 'world'],
-      raw: 'echo hello world',
-    });
-  });
+  it('handles quoted strings', () => {
+    expect(tokenize('echo "hello world"')).toEqual(['echo', 'hello world'])
+  })
 
-  it('converts command to lowercase', () => {
-    const result = parseCommand('HELP');
-    expect(result.command).toBe('help');
-  });
+  it('handles single quoted strings', () => {
+    expect(tokenize("echo 'hello world'")).toEqual(['echo', 'hello world'])
+  })
 
-  it('handles leading/trailing whitespace', () => {
-    const result = parseCommand('  help  ');
-    expect(result.command).toBe('help');
-    expect(result.raw).toBe('help');
-  });
+  it('handles escaped characters', () => {
+    expect(tokenize('echo hello\\ world')).toEqual(['echo', 'hello world'])
+  })
 
-  it('handles multiple spaces between args', () => {
-    const result = parseCommand('cat   about');
-    expect(result.args).toEqual(['about']);
-  });
+  it('handles empty input', () => {
+    expect(tokenize('')).toEqual([])
+  })
 
-  it('returns empty command for empty input', () => {
-    const result = parseCommand('');
-    expect(result.command).toBe('');
-    expect(result.args).toEqual([]);
-  });
-});
+  it('handles multiple spaces', () => {
+    expect(tokenize('ls   -l   -a')).toEqual(['ls', '-l', '-a'])
+  })
+})
 
-describe('parseInput', () => {
-  describe('single commands', () => {
-    it('parses a single command', () => {
-      const result = parseInput('help');
-      expect(result.type).toBe('single');
-      expect(result.commands).toHaveLength(1);
-      expect(result.commands?.[0].command).toBe('help');
-    });
-  });
+describe('parseCommandString', () => {
+  it('parses simple command', () => {
+    const result = parseCommandString('ls')
+    expect(result.commands).toEqual([{ command: 'ls', args: [] }])
+    expect(result.error).toBeUndefined()
+  })
 
-  describe('pipe operator', () => {
-    it('returns error for pipe operator', () => {
-      const result = parseInput('ls | grep test');
-      expect(result.type).toBe('error');
-      expect(result.error).toContain('Pipes are not supported');
-    });
+  it('parses command with args', () => {
+    const result = parseCommandString('ls -l')
+    expect(result.commands).toEqual([{ command: 'ls', args: ['-l'] }])
+  })
 
-    it('returns error for single pipe', () => {
-      const result = parseInput('cat about | head');
-      expect(result.type).toBe('error');
-    });
-  });
+  it('parses chained commands with &&', () => {
+    const result = parseCommandString('echo hello && clear')
+    expect(result.commands).toEqual([
+      { command: 'echo', args: ['hello'] },
+      { command: 'clear', args: [] },
+    ])
+  })
 
-  describe('background operator', () => {
-    it('returns error for background operator at end', () => {
-      const result = parseInput('sleep 10 &');
-      expect(result.type).toBe('error');
-      expect(result.error).toContain('Background execution is not supported');
-    });
+  it('handles multiple chained commands', () => {
+    const result = parseCommandString('pwd && whoami && date')
+    expect(result.commands).toHaveLength(3)
+  })
 
-    it('returns error for standalone &', () => {
-      const result = parseInput('&');
-      expect(result.type).toBe('error');
-    });
+  it('returns error for pipe operator', () => {
+    const result = parseCommandString('ls | grep test')
+    expect(result.error).toBe('Pipes are not supported in this terminal')
+    expect(result.commands).toEqual([])
+  })
 
-    it('does not error on && (not background)', () => {
-      const result = parseInput('ls && pwd');
-      expect(result.type).toBe('chain');
-    });
-  });
+  it('returns error for background operator', () => {
+    const result = parseCommandString('sleep 10 &')
+    expect(result.error).toBe('Background execution is not supported')
+    expect(result.commands).toEqual([])
+  })
 
-  describe('|| operator', () => {
-    it('returns error for || operator', () => {
-      const result = parseInput('false || echo fallback');
-      expect(result.type).toBe('error');
-      expect(result.error).toContain('|| operator is not supported');
-    });
-  });
+  it('handles empty input', () => {
+    const result = parseCommandString('')
+    expect(result.commands).toEqual([])
+    expect(result.error).toBeUndefined()
+  })
 
-  describe('&& chaining', () => {
-    it('parses two commands chained with &&', () => {
-      const result = parseInput('ls && pwd');
-      expect(result.type).toBe('chain');
-      expect(result.commands).toHaveLength(2);
-      expect(result.commands?.[0].command).toBe('ls');
-      expect(result.commands?.[1].command).toBe('pwd');
-    });
+  it('handles whitespace only', () => {
+    const result = parseCommandString('   ')
+    expect(result.commands).toEqual([])
+  })
 
-    it('parses three commands chained with &&', () => {
-      const result = parseInput('help && ls && pwd');
-      expect(result.type).toBe('chain');
-      expect(result.commands).toHaveLength(3);
-    });
+  it('allows || in command (not treated as pipe)', () => {
+    const result = parseCommandString('echo hello || world')
+    expect(result.error).toBeUndefined()
+  })
+})
 
-    it('handles whitespace around &&', () => {
-      const result = parseInput('ls  &&  pwd');
-      expect(result.type).toBe('chain');
-      expect(result.commands?.[0].command).toBe('ls');
-      expect(result.commands?.[1].command).toBe('pwd');
-    });
+describe('hasHelpFlag', () => {
+  it('detects -h flag', () => {
+    expect(hasHelpFlag(['-h'])).toBe(true)
+    expect(hasHelpFlag(['arg', '-h'])).toBe(true)
+  })
 
-    it('preserves arguments in chained commands', () => {
-      const result = parseInput('cat about && echo hello world');
-      expect(result.type).toBe('chain');
-      expect(result.commands?.[0].args).toEqual(['about']);
-      expect(result.commands?.[1].args).toEqual(['hello', 'world']);
-    });
-  });
-});
+  it('detects --help flag', () => {
+    expect(hasHelpFlag(['--help'])).toBe(true)
+    expect(hasHelpFlag(['arg', '--help'])).toBe(true)
+  })
+
+  it('returns false when no help flag', () => {
+    expect(hasHelpFlag([])).toBe(false)
+    expect(hasHelpFlag(['-l', '-a'])).toBe(false)
+  })
+})
+
+describe('formatHelp', () => {
+  it('formats basic help', () => {
+    const result = formatHelp('ls', 'List files', 'ls [options]')
+    expect(result.output).toContain('NAME')
+    expect(result.output).toContain('ls - List files')
+    expect(result.output).toContain('SYNOPSIS')
+    expect(result.output).toContain('ls [options]')
+  })
+
+  it('includes options when provided', () => {
+    const result = formatHelp('ls', 'List files', 'ls [options]', [
+      { flag: '-l', description: 'Long format' },
+      { flag: '-a', description: 'Show hidden' },
+    ])
+    expect(result.output).toContain('OPTIONS')
+    expect(result.output).toContain('-l')
+    expect(result.output).toContain('Long format')
+    expect(result.output).toContain('-a')
+    expect(result.output).toContain('Show hidden')
+  })
+})

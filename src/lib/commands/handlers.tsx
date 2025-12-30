@@ -1,758 +1,877 @@
-import type { Command, CommandResult } from '@/types/terminal';
-import { siteConfig } from '@/config/data/site-data';
-import type { Skill } from '@/config/content';
-import { themes, getThemeIds } from '@/config/themes';
-import { setTheme as setThemeRegistry, getCurrentThemeId } from '@/lib/themeRegistry';
-import { versionInfo } from '@/config/version';
+import type { CommandDefinition } from '../../types/terminal'
+import { hasHelpFlag, formatHelp } from './parser'
+import { themes, themeIds } from '../../config/themes'
+import { siteData } from '../../config/data/site-data'
+import { setTheme, getCurrentThemeId } from '../themeRegistry'
 
-// Available sections for cat command
-const SECTIONS = ['about', 'experience', 'skills', 'projects', 'contact', 'resume'] as const;
-type Section = typeof SECTIONS[number];
+// ASCII art banner
+const ASCII_BANNER = `
+██╗    ██╗██╗  ██╗ ██████╗  █████╗ ███╗   ███╗██╗
+██║    ██║██║  ██║██╔═══██╗██╔══██╗████╗ ████║██║
+██║ █╗ ██║███████║██║   ██║███████║██╔████╔██║██║
+██║███╗██║██╔══██║██║   ██║██╔══██║██║╚██╔╝██║██║
+╚███╔███╔╝██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║
+ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝
+`
 
-// Helper to check if args contain help flag
-function hasHelpFlag(args: string[]): boolean {
-  return args.includes('-h') || args.includes('--help');
+// Available sections
+const SECTIONS = ['about', 'experience', 'skills', 'projects', 'contact', 'resume'] as const
+type Section = typeof SECTIONS[number]
+
+// Section content generators
+function getSectionContent(section: Section): string {
+  switch (section) {
+    case 'about':
+      return [
+        siteData.about.bio,
+        '',
+        'Highlights:',
+        ...siteData.about.highlights.map((h) => `  • ${h}`),
+      ].join('\n')
+
+    case 'experience':
+      return siteData.experience
+        .map((exp) => [
+          `${exp.title} @ ${exp.company}`,
+          `${exp.period}`,
+          '',
+          exp.description,
+          '',
+          ...exp.highlights.map((h) => `  • ${h}`),
+          '',
+          `Technologies: ${exp.technologies.join(', ')}`,
+          '',
+          '---',
+        ].join('\n'))
+        .join('\n')
+
+    case 'skills':
+      return siteData.skills
+        .map((cat) => `${cat.name}:\n  ${cat.skills.join(', ')}`)
+        .join('\n\n')
+
+    case 'projects':
+      return siteData.projects
+        .map((proj) => {
+          const lines = [proj.name, proj.description]
+          if (proj.technologies.length > 0) {
+            lines.push(`Technologies: ${proj.technologies.join(', ')}`)
+          }
+          if (proj.github) {
+            lines.push(`GitHub: ${proj.github}`)
+          }
+          if (proj.demo) {
+            lines.push(`Demo: ${proj.demo}`)
+          }
+          lines.push('')
+          return lines.join('\n')
+        })
+        .join('\n')
+
+    case 'contact': {
+      const lines: string[] = []
+      lines.push(`Email: ${siteData.contact.email}`)
+      if (siteData.contact.github) {
+        lines.push(`GitHub: ${siteData.contact.github}`)
+      }
+      if (siteData.contact.linkedin) {
+        lines.push(`LinkedIn: ${siteData.contact.linkedin}`)
+      }
+      if (siteData.contact.website) {
+        lines.push(`Website: ${siteData.contact.website}`)
+      }
+      return lines.join('\n')
+    }
+
+    case 'resume':
+      return [
+        `Resume available at: ${siteData.resume.url}`,
+        `Last updated: ${siteData.resume.lastUpdated}`,
+        '',
+        "Use 'export' command to download.",
+      ].join('\n')
+  }
 }
 
-// Helper to create command help output
-function createHelpOutput(cmd: Command): CommandResult {
-  return {
-    output: (
-      <div className="space-y-2">
-        <div>
-          <span className="text-terminal-prompt font-bold">{cmd.name}</span>
-          <span className="text-terminal-muted"> - {cmd.description}</span>
-        </div>
-        {cmd.usage && (
-          <div>
-            <span className="text-terminal-prompt">Usage:</span>{' '}
-            <span className="text-terminal-text">{cmd.usage}</span>
-          </div>
-        )}
-        {cmd.options && (
-          <div className="mt-2">
-            <div className="text-terminal-prompt">Options:</div>
-            <div className="pl-2 space-y-1">
-              {cmd.options.map((opt, i) => (
-                <div key={i}>
-                  <span className="text-terminal-link">{opt.flag}</span>{' '}
-                  <span className="text-terminal-muted">{opt.description}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    ),
-  };
-}
+// Command definitions
+export const commands: Record<string, CommandDefinition> = {
+  help: {
+    name: 'help',
+    description: 'Display available commands',
+    usage: 'help [command]',
+    options: [],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('help', 'Display available commands', 'help [command]')
+      }
 
-// Helper to get browser info
-function getBrowserInfo(): Record<string, string> {
-  const nav = typeof navigator !== 'undefined' ? navigator : null;
-  const win = typeof window !== 'undefined' ? window : null;
-  const screen = typeof window !== 'undefined' ? window.screen : null;
-
-  return {
-    'User Agent': nav?.userAgent || 'Unknown',
-    'Platform': nav?.platform || 'Unknown',
-    'Language': nav?.language || 'Unknown',
-    'Languages': nav?.languages?.join(', ') || 'Unknown',
-    'Cookies Enabled': nav?.cookieEnabled ? 'Yes' : 'No',
-    'Online': nav?.onLine ? 'Yes' : 'No',
-    'Screen Resolution': screen ? `${screen.width}x${screen.height}` : 'Unknown',
-    'Color Depth': screen ? `${screen.colorDepth}-bit` : 'Unknown',
-    'Viewport': win ? `${win.innerWidth}x${win.innerHeight}` : 'Unknown',
-    'Device Pixel Ratio': win ? `${win.devicePixelRatio}x` : 'Unknown',
-    'Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
-    'Touch Support': nav && 'maxTouchPoints' in nav ? (nav.maxTouchPoints > 0 ? 'Yes' : 'No') : 'Unknown',
-  };
-}
-
-// Helper to create styled output
-function createSection(title: string, content: React.ReactNode): React.ReactNode {
-  return (
-    <div className="my-2">
-      <div className="text-terminal-prompt font-bold mb-1">{title}</div>
-      <div className="pl-2 border-l border-terminal-text/30">{content}</div>
-    </div>
-  );
-}
-
-// Command implementations
-const helpCommand: Command = {
-  name: 'help',
-  description: 'Show available commands',
-  handler: (_args: string[]) => {
-    const commandList = Object.values(commands)
-      .filter(cmd => !cmd.name.startsWith('_'))
-      .map(cmd => (
-        <div key={cmd.name} className="flex gap-4">
-          <span className="text-terminal-success w-20">{cmd.name}</span>
-          <span className="text-terminal-muted">{cmd.description}</span>
-        </div>
-      ));
-
-    return {
-      output: (
-        <div className="space-y-1">
-          <div className="text-terminal-prompt mb-2">Available Commands:</div>
-          {commandList}
-          <div className="mt-4 text-terminal-muted text-sm">
-            Tip: Use Tab for autocomplete, ↑/↓ for history
-          </div>
-        </div>
-      ),
-    };
-  },
-};
-
-const lsCommand: Command = {
-  name: 'ls',
-  description: 'List available sections',
-  usage: 'ls [section]',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(lsCommand);
-    }
-
-    // If no args, list all sections
-    if (args.length === 0) {
-      return {
-        output: (
-          <div className="flex flex-wrap gap-4">
-            {SECTIONS.map(section => (
-              <span key={section} className="text-terminal-link">{section}</span>
-            ))}
-          </div>
-        ),
-      };
-    }
-
-    // If arg provided, check if it's a valid section
-    const section = args[0].toLowerCase();
-    if (!SECTIONS.includes(section as Section)) {
-      return {
-        output: `ls: cannot access '${args[0]}': No such file or directory\nAvailable: ${SECTIONS.join(', ')}`,
-        isError: true,
-      };
-    }
-
-    // Valid section - hint to use cat
-    return {
-      output: `Use 'cat ${section}' to view contents`,
-    };
-  },
-};
-
-const cdCommand: Command = {
-  name: 'cd',
-  description: 'Change directory (limited support)',
-  usage: 'cd [section]',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(cdCommand);
-    }
-
-    if (args.length === 0) {
-      return {
-        output: `This is a flat file system. Use 'cat <section>' to view contents.\nAvailable sections: ${SECTIONS.join(', ')}`,
-      };
-    }
-
-    const section = args[0].toLowerCase();
-    if (SECTIONS.includes(section as Section)) {
-      return {
-        output: `Use 'cat ${section}' to view contents`,
-      };
-    }
-
-    return {
-      output: `cd: ${args[0]}: No such file or directory`,
-      isError: true,
-    };
-  },
-};
-
-const catCommand: Command = {
-  name: 'cat',
-  description: 'Display section content',
-  usage: 'cat <section>',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(catCommand);
-    }
-
-    const section = args[0]?.toLowerCase() as Section;
-
-    if (!section) {
-      return {
-        output: `Usage: cat <section>\nAvailable sections: ${SECTIONS.join(', ')}`,
-        isError: true,
-      };
-    }
-
-    if (!SECTIONS.includes(section)) {
-      return {
-        output: `Section not found: ${section}\nAvailable sections: ${SECTIONS.join(', ')}`,
-        isError: true,
-      };
-    }
-
-    switch (section) {
-      case 'about':
-        return {
-          output: (
-            <div className="space-y-4">
-              {createSection('About Me', (
-                <div className="space-y-2">
-                  {siteConfig.personal.bio.map((paragraph, i) => (
-                    <p key={i} className="text-terminal-text">{paragraph}</p>
-                  ))}
-                </div>
-              ))}
-              {createSection('Interests', (
-                <ul className="list-disc list-inside text-terminal-text">
-                  {siteConfig.personal.interests.map((interest, i) => (
-                    <li key={i}>{interest}</li>
-                  ))}
-                </ul>
-              ))}
-            </div>
-          ),
-        };
-
-      case 'experience':
-        return {
-          output: (
-            <div className="space-y-4">
-              {siteConfig.experience.map(exp => (
-                <div key={exp.id} className="border-l border-terminal-text/30 pl-3">
-                  <div className="text-terminal-prompt font-bold">{exp.role}</div>
-                  <div className="text-terminal-link">{exp.company}</div>
-                  <div className="text-terminal-muted text-sm">{exp.displayPeriod} • {exp.location}</div>
-                  <ul className="mt-2 text-terminal-text text-sm space-y-1">
-                    {exp.description.slice(0, 3).map((desc, i) => (
-                      <li key={i}>• {desc}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ),
-        };
-
-      case 'skills':
-        return {
-          output: (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(siteConfig.skills).map(([key, category]) => (
-                <div key={key}>
-                  <div className="text-terminal-prompt font-bold">{category.title}</div>
-                  <div className="text-terminal-text text-sm">
-                    {category.items.map((skill: Skill) => skill.name).join(', ')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ),
-        };
-
-      case 'projects':
-        if (siteConfig.projects.length === 0) {
-          return {
-            output: (
-              <div className="text-terminal-muted">
-                Projects section coming soon...
-              </div>
-            ),
-          };
+      if (args.length > 0) {
+        const cmdName = args[0]
+        const cmd = commands[cmdName]
+        if (cmd) {
+          return formatHelp(cmd.name, cmd.description, cmd.usage, cmd.options)
         }
-        return {
-          output: (
-            <div className="space-y-4">
-              {siteConfig.projects.map(project => (
-                <div key={project.id} className="border-l border-terminal-text/30 pl-3">
-                  <div className="text-terminal-prompt font-bold">{project.name}</div>
-                  <div className="text-terminal-muted text-sm">{project.tagline}</div>
-                  <div className="text-terminal-link text-sm mt-1">
-                    {project.tech.join(' • ')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ),
-        };
-
-      case 'contact':
-        return {
-          output: (
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <span className="text-terminal-prompt w-20">Email:</span>
-                <a href={`mailto:${siteConfig.social.email}`} className="text-terminal-link hover:underline">
-                  {siteConfig.social.email}
-                </a>
-              </div>
-              {siteConfig.social.github && (
-                <div className="flex gap-2">
-                  <span className="text-terminal-prompt w-20">GitHub:</span>
-                  <a href={siteConfig.social.github} target="_blank" rel="noopener noreferrer" className="text-terminal-link hover:underline">
-                    {siteConfig.social.github.replace('https://', '')}
-                  </a>
-                </div>
-              )}
-              {siteConfig.social.linkedin && (
-                <div className="flex gap-2">
-                  <span className="text-terminal-prompt w-20">LinkedIn:</span>
-                  <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-terminal-link hover:underline">
-                    {siteConfig.social.linkedin.replace('https://', '')}
-                  </a>
-                </div>
-              )}
-            </div>
-          ),
-        };
-
-      case 'resume':
-        return {
-          output: (
-            <div className="space-y-2">
-              <p className="text-terminal-text">Download my resume:</p>
-              <a
-                href={siteConfig.resume.pdfUrl}
-                download={siteConfig.resume.filename}
-                className="inline-block text-terminal-link hover:underline"
-              >
-                {siteConfig.resume.filename}
-              </a>
-              <p className="text-terminal-muted text-sm">Last updated: {siteConfig.resume.lastUpdated}</p>
-              <p className="text-terminal-muted text-sm mt-2">
-                Or use the <span className="text-terminal-success">export</span> command to download directly.
-              </p>
-            </div>
-          ),
-        };
-
-      default:
-        return { output: 'Section not found', isError: true };
-    }
-  },
-};
-
-const clearCommand: Command = {
-  name: 'clear',
-  description: 'Clear terminal screen',
-  usage: 'clear',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(clearCommand);
-    }
-    return { output: '', clear: true };
-  },
-};
-
-const historyCommand: Command = {
-  name: 'history',
-  description: 'Show command history',
-  usage: 'history',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[], history?: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(historyCommand);
-    }
-    if (!history || history.length === 0) {
-      return { output: 'No commands in history' };
-    }
-    return {
-      output: (
-        <div className="space-y-1">
-          {history.map((cmd, i) => (
-            <div key={i} className="flex gap-4">
-              <span className="text-terminal-muted w-8 text-right">{i + 1}</span>
-              <span className="text-terminal-text">{cmd}</span>
-            </div>
-          ))}
-        </div>
-      ),
-    };
-  },
-};
-
-const exportCommand: Command = {
-  name: 'export',
-  description: 'Download resume PDF',
-  usage: 'export',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(exportCommand);
-    }
-    // Trigger download
-    const link = document.createElement('a');
-    link.href = siteConfig.resume.pdfUrl;
-    link.download = siteConfig.resume.filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    return {
-      output: `Downloading ${siteConfig.resume.filename}...`,
-    };
-  },
-};
-
-const motdCommand: Command = {
-  name: 'motd',
-  description: 'Show welcome message',
-  usage: 'motd',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(motdCommand);
-    }
-    return {
-      output: (
-        <div className="space-y-2">
-          <pre className="text-terminal-text text-xs">
-{String.raw`    _   _                       ____  _
-   / \ | |__  _ __ __ _ _ __ __/ ___|| |_ __ _ _ __ ___  _ __   ___ _ __
-  / _ \| '_ \| '__/ _' | '_ ' _\___ \| __/ _' | '_ ' _ \| '_ \ / _ \ '__|
- / ___ \ |_) | | | (_| | | | | |___) | || (_| | | | | | | |_) |  __/ |
-/_/   \_\.__/|_|  \__,_|_| |_| |____/ \__\__,_|_| |_| |_| .__/ \___|_|
-                                                       |_|`}
-          </pre>
-          <div className="text-terminal-muted">
-            Welcome to my terminal portfolio!
-          </div>
-          <div className="text-terminal-muted text-sm">
-            Type <span className="text-terminal-success">help</span> for available commands.
-          </div>
-        </div>
-      ),
-    };
-  },
-};
-
-const whoamiCommand: Command = {
-  name: 'whoami',
-  description: 'Display user identity',
-  usage: 'whoami',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(whoamiCommand);
-    }
-    return {
-      output: (
-        <div className="space-y-1 text-terminal-text">
-          <div><span className="text-terminal-prompt">username:</span> guest</div>
-          <div><span className="text-terminal-prompt">host:</span> {siteConfig.personal.name.toLowerCase().replace(/\s+/g, '-')}-portfolio</div>
-          <div><span className="text-terminal-prompt">shell:</span> /bin/portfolio</div>
-          <div className="mt-2 text-terminal-muted italic">
-            "Just a person who teaches sand to think."
-          </div>
-        </div>
-      ),
-    };
-  },
-};
-
-const pwdCommand: Command = {
-  name: 'pwd',
-  description: 'Print working directory',
-  usage: 'pwd',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(pwdCommand);
-    }
-    return { output: '/home/guest/portfolio' };
-  },
-};
-
-const dateCommand: Command = {
-  name: 'date',
-  description: 'Display current date and time',
-  usage: 'date',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(dateCommand);
-    }
-    return { output: new Date().toString() };
-  },
-};
-
-const echoCommand: Command = {
-  name: 'echo',
-  description: 'Display a message',
-  usage: 'echo <message>',
-  options: [
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args) => {
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(echoCommand);
-    }
-    return { output: args.join(' ') || '' };
-  },
-};
-
-const themeCommand: Command = {
-  name: 'theme',
-  description: 'Display or change terminal theme',
-  usage: 'theme [-l] [-s <name>] [name]',
-  options: [
-    { flag: '-l, --list', description: 'List all available themes' },
-    { flag: '-s, --set <name>', description: 'Set the theme' },
-    { flag: '-h, --help', description: 'Show available themes and usage' },
-  ],
-  handler: (args: string[]) => {
-    const themeIds = getThemeIds();
-    const currentId = getCurrentThemeId();
-
-    // Helper to list themes
-    const listThemes = () => (
-      <div className="space-y-2">
-        <div className="text-terminal-prompt font-bold">Available themes:</div>
-        <div className="space-y-1">
-          {themeIds.map(id => {
-            const theme = themes[id];
-            const isCurrent = id === currentId;
-            return (
-              <div key={id} className="flex gap-2">
-                <span className={isCurrent ? 'text-terminal-success' : 'text-terminal-link'}>
-                  {isCurrent ? '* ' : '  '}{id}
-                </span>
-                <span className="text-terminal-muted">- {theme.description}</span>
-              </div>
-            );
-          })}
-        </div>
-        <div className="text-terminal-muted text-sm mt-2">
-          Use 'theme &lt;name&gt;' or 'theme -s &lt;name&gt;' to switch themes
-        </div>
-      </div>
-    );
-
-    // Helper to set theme
-    const setTheme = (themeId: string) => {
-      const normalizedId = themeId.toLowerCase();
-      if (!themeIds.includes(normalizedId)) {
-        return {
-          output: `Unknown theme: ${themeId}\nAvailable: ${themeIds.join(', ')}`,
-          isError: true,
-        };
+        return { error: `help: no help topics match '${cmdName}'` }
       }
 
-      const success = setThemeRegistry(normalizedId);
-      if (!success) {
-        return {
-          output: 'Failed to set theme (theme provider not initialized)',
-          isError: true,
-        };
-      }
-
-      const theme = themes[normalizedId];
-      return {
-        output: `Theme switched to: ${theme.name}`,
-      };
-    };
-
-    // -h or --help: show theme list (same as -l but with help context)
-    if (hasHelpFlag(args)) {
-      return { output: listThemes() };
-    }
-
-    // -l or --list: list available themes
-    if (args.includes('-l') || args.includes('--list')) {
-      return { output: listThemes() };
-    }
-
-    // -s or --set: set theme
-    const setIndex = args.findIndex(a => a === '-s' || a === '--set');
-    if (setIndex !== -1) {
-      const themeName = args[setIndex + 1];
-      if (!themeName) {
-        return {
-          output: 'Usage: theme -s <name>\nUse "theme -l" to list available themes.',
-          isError: true,
-        };
-      }
-      return setTheme(themeName);
-    }
-
-    // No args: show current theme
-    if (args.length === 0) {
-      const theme = themes[currentId];
-      return {
-        output: `${currentId} - ${theme.description}`,
-      };
-    }
-
-    // Direct theme name: set theme
-    return setTheme(args[0]);
-  },
-};
-
-const unameCommand: Command = {
-  name: 'uname',
-  description: 'Display system information',
-  usage: 'uname [-a] [-n] [-h]',
-  options: [
-    { flag: '-a, --all', description: 'Show all system information' },
-    { flag: '-n, --node', description: 'Show browser/client information' },
-    { flag: '-h, --help', description: 'Show this help message' },
-  ],
-  handler: (args: string[]) => {
-    // Handle help flag
-    if (hasHelpFlag(args)) {
-      return createHelpOutput(unameCommand);
-    }
-
-    const showAll = args.includes('-a') || args.includes('--all');
-    const showNode = args.includes('-n') || args.includes('--node');
-
-    // Show browser info
-    if (showNode) {
-      const browserInfo = getBrowserInfo();
-      return {
-        output: (
-          <div className="space-y-2">
-            <div className="text-terminal-prompt font-bold">Client Information:</div>
-            <div className="space-y-1">
-              {Object.entries(browserInfo).map(([key, value]) => (
-                <div key={key}>
-                  <span className="text-terminal-link">{key}:</span>{' '}
-                  <span className="text-terminal-text text-sm">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+      const helpText = [
+        'Available commands:',
+        '',
+        ...Object.values(commands).map(
+          (cmd) => `  ${cmd.name.padEnd(12)} ${cmd.description}`
         ),
-      };
-    }
-
-    // Default: just show name and version
-    if (!showAll) {
-      return {
-        output: `${versionInfo.name} v${versionInfo.version}`,
-      };
-    }
-
-    // Show all system info
-    return {
-      output: (
-        <div className="space-y-2">
-          <div className="text-terminal-prompt font-bold">System Information:</div>
-          <div className="space-y-1">
-            <div>
-              <span className="text-terminal-prompt">Project:</span>{' '}
-              <span className="text-terminal-text">{versionInfo.name} v{versionInfo.version}</span>
-            </div>
-            <div>
-              <span className="text-terminal-prompt">Platform:</span>{' '}
-              <span className="text-terminal-text">Web Browser</span>
-            </div>
-          </div>
-
-          <div className="text-terminal-prompt font-bold mt-3">Core Dependencies:</div>
-          <div className="space-y-1">
-            {Object.entries(versionInfo.dependencies).map(([name, version]) => (
-              <div key={name}>
-                <span className="text-terminal-link">{name}:</span>{' '}
-                <span className="text-terminal-text">{version}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-terminal-prompt font-bold mt-3">Dev Tools:</div>
-          <div className="space-y-1">
-            {Object.entries(versionInfo.devDependencies).map(([name, version]) => (
-              <div key={name}>
-                <span className="text-terminal-link">{name}:</span>{' '}
-                <span className="text-terminal-text">{version}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-    };
+        '',
+        "Type 'help <command>' for more information on a specific command.",
+      ]
+      return { output: helpText.join('\n') }
+    },
   },
-};
 
-// Registry of all commands
-export const commands: Record<string, Command> = {
-  help: helpCommand,
-  ls: lsCommand,
-  cd: cdCommand,
-  cat: catCommand,
-  clear: clearCommand,
-  history: historyCommand,
-  export: exportCommand,
-  motd: motdCommand,
-  whoami: whoamiCommand,
-  pwd: pwdCommand,
-  date: dateCommand,
-  echo: echoCommand,
-  theme: themeCommand,
-  uname: unameCommand,
-};
+  man: {
+    name: 'man',
+    description: 'Display manual page for a command',
+    usage: 'man <command>',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('man', 'Display manual page for a command', 'man <command>')
+      }
 
-// Execute a command
-export function executeCommand(
-  commandStr: string,
-  args: string[],
-  history?: string[]
-): CommandResult {
-  const command = commands[commandStr];
+      if (args.length === 0) {
+        return { error: 'What manual page do you want?' }
+      }
 
-  if (!command) {
-    return {
-      output: `Command not found: ${commandStr}\nType 'help' for available commands.`,
-      isError: true,
-    };
-  }
+      const cmdName = args[0]
+      const cmd = commands[cmdName]
+      if (!cmd) {
+        return { error: `No manual entry for ${cmdName}` }
+      }
 
-  // Special handling for history command
-  if (commandStr === 'history') {
-    return command.handler(args, history);
-  }
+      return formatHelp(cmd.name, cmd.description, cmd.usage, cmd.options)
+    },
+  },
 
-  return command.handler(args);
+  ls: {
+    name: 'ls',
+    description: 'List available sections',
+    usage: 'ls [-l] [-a]',
+    options: [
+      { flag: '-l', description: 'Use long listing format' },
+      { flag: '-a', description: 'Include hidden sections' },
+    ],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('ls', 'List available sections', 'ls [-l] [-a]', [
+          { flag: '-l', description: 'Use long listing format' },
+          { flag: '-a', description: 'Include hidden sections' },
+        ])
+      }
+
+      const longFormat = args.includes('-l')
+      const showHidden = args.includes('-a')
+
+      // Check for invalid section argument
+      const nonFlagArgs = args.filter((a) => !a.startsWith('-'))
+      if (nonFlagArgs.length > 0) {
+        return { error: `ls: cannot access '${nonFlagArgs[0]}': Not a directory` }
+      }
+
+      let sections = [...SECTIONS]
+      if (showHidden) {
+        sections = [...sections, '.secrets']
+      }
+
+      if (longFormat) {
+        const output = sections
+          .map((s) => {
+            const desc = s === '.secrets' ? 'Hidden easter eggs' : `${s.charAt(0).toUpperCase()}${s.slice(1)} section`
+            return `-rw-r--r--  1 ${siteData.username}  staff  ${desc}`
+          })
+          .join('\n')
+        return { output }
+      }
+
+      return { output: sections.join('  ') }
+    },
+  },
+
+  cat: {
+    name: 'cat',
+    description: 'Display section content',
+    usage: 'cat <section> [section...]',
+    options: [{ flag: '-n', description: 'Number output lines' }],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('cat', 'Display section content', 'cat <section> [section...]', [
+          { flag: '-n', description: 'Number output lines' },
+        ])
+      }
+
+      const showLineNumbers = args.includes('-n')
+      const sections = args.filter((a) => !a.startsWith('-'))
+
+      if (sections.length === 0) {
+        return { error: 'cat: missing operand' }
+      }
+
+      const outputs: string[] = []
+      for (const section of sections) {
+        if (!SECTIONS.includes(section as Section)) {
+          return { error: `cat: ${section}: No such file or directory` }
+        }
+        outputs.push(getSectionContent(section as Section))
+      }
+
+      let output = outputs.join('\n\n')
+      if (showLineNumbers) {
+        output = output
+          .split('\n')
+          .map((line, i) => `${String(i + 1).padStart(6)}  ${line}`)
+          .join('\n')
+      }
+
+      return { output }
+    },
+  },
+
+  cd: {
+    name: 'cd',
+    description: 'Change directory (hint only)',
+    usage: 'cd [section]',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('cd', 'Change directory (hint only)', 'cd [section]')
+      }
+      return { output: "Hint: Use 'cat <section>' to view section contents. Try 'ls' to see available sections." }
+    },
+  },
+
+  pwd: {
+    name: 'pwd',
+    description: 'Print working directory',
+    usage: 'pwd',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('pwd', 'Print working directory', 'pwd')
+      }
+      return { output: `/home/${siteData.username}` }
+    },
+  },
+
+  clear: {
+    name: 'clear',
+    description: 'Clear the terminal screen',
+    usage: 'clear',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('clear', 'Clear the terminal screen', 'clear')
+      }
+      return { clearScreen: true }
+    },
+  },
+
+  history: {
+    name: 'history',
+    description: 'Show command history',
+    usage: 'history [-c] [n]',
+    options: [{ flag: '-c', description: 'Clear history' }],
+    handler: (args, history) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('history', 'Show command history', 'history [-c] [n]', [
+          { flag: '-c', description: 'Clear history' },
+        ])
+      }
+
+      if (args.includes('-c')) {
+        return { output: 'History cleared' }
+      }
+
+      const numArg = args.find((a) => /^\d+$/.test(a))
+      const limit = numArg ? parseInt(numArg, 10) : history.length
+
+      const output = history
+        .slice(-limit)
+        .map((cmd, i) => `${String(i + 1).padStart(5)}  ${cmd}`)
+        .join('\n')
+
+      return { output: output || 'No commands in history' }
+    },
+  },
+
+  echo: {
+    name: 'echo',
+    description: 'Display a message',
+    usage: 'echo [message...]',
+    options: [{ flag: '-n', description: 'Do not output trailing newline' }],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('echo', 'Display a message', 'echo [message...]', [
+          { flag: '-n', description: 'Do not output trailing newline' },
+        ])
+      }
+
+      const noNewline = args[0] === '-n'
+      const message = noNewline ? args.slice(1).join(' ') : args.join(' ')
+      return { output: message }
+    },
+  },
+
+  whoami: {
+    name: 'whoami',
+    description: 'Display current user',
+    usage: 'whoami',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('whoami', 'Display current user', 'whoami')
+      }
+      return { output: siteData.username }
+    },
+  },
+
+  hostname: {
+    name: 'hostname',
+    description: 'Display system hostname',
+    usage: 'hostname',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('hostname', 'Display system hostname', 'hostname')
+      }
+      return { output: typeof window !== 'undefined' ? window.location.hostname : siteData.hostname }
+    },
+  },
+
+  id: {
+    name: 'id',
+    description: 'Display user identity',
+    usage: 'id',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('id', 'Display user identity', 'id')
+      }
+      return {
+        output: `uid=1000(${siteData.username}) gid=1000(${siteData.username}) groups=1000(${siteData.username})`,
+      }
+    },
+  },
+
+  exit: {
+    name: 'exit',
+    description: 'Exit the terminal',
+    usage: 'exit',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('exit', 'Exit the terminal', 'exit')
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = 'https://youtu.be/dQw4w9WgXcQ?si=Q1MpJ6ll3cuuVw8E'
+      }
+      return { output: 'Goodbye!' }
+    },
+  },
+
+  logout: {
+    name: 'logout',
+    description: 'Log out of the terminal',
+    usage: 'logout',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('logout', 'Log out of the terminal', 'logout')
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = 'https://youtu.be/dQw4w9WgXcQ?si=Q1MpJ6ll3cuuVw8E'
+      }
+      return { output: 'Goodbye!' }
+    },
+  },
+
+  date: {
+    name: 'date',
+    description: 'Display current date and time',
+    usage: 'date [-u]',
+    options: [{ flag: '-u', description: 'Display UTC time' }],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('date', 'Display current date and time', 'date [-u]', [
+          { flag: '-u', description: 'Display UTC time' },
+        ])
+      }
+
+      const useUTC = args.includes('-u')
+      const now = new Date()
+      const output = useUTC ? now.toUTCString() : now.toString()
+      return { output }
+    },
+  },
+
+  uname: {
+    name: 'uname',
+    description: 'Display system information',
+    usage: 'uname [-a] [-s] [-r] [-v] [-m] [-n]',
+    options: [
+      { flag: '-a', description: 'Display all information' },
+      { flag: '-s', description: 'System name' },
+      { flag: '-r', description: 'Release version' },
+      { flag: '-v', description: 'Version details' },
+      { flag: '-m', description: 'Machine type' },
+      { flag: '-n', description: 'Node/hostname info' },
+    ],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('uname', 'Display system information', 'uname [-a] [-s] [-r] [-v] [-m] [-n]', [
+          { flag: '-a', description: 'Display all information' },
+          { flag: '-s', description: 'System name' },
+          { flag: '-r', description: 'Release version' },
+          { flag: '-v', description: 'Version details' },
+          { flag: '-m', description: 'Machine type' },
+          { flag: '-n', description: 'Node/hostname info' },
+        ])
+      }
+
+      const system = 'TerminalPortfolio'
+      const release = '1.0.0'
+      const version = `Built with React + TypeScript + Vite`
+      const machine = 'browser'
+      const node = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown'
+
+      if (args.includes('-a')) {
+        return { output: `${system} ${release} ${version} ${machine}` }
+      }
+      if (args.includes('-s')) return { output: system }
+      if (args.includes('-r')) return { output: release }
+      if (args.includes('-v')) return { output: version }
+      if (args.includes('-m')) return { output: machine }
+      if (args.includes('-n')) return { output: node }
+
+      return { output: system }
+    },
+  },
+
+  ifconfig: {
+    name: 'ifconfig',
+    description: 'Display network information',
+    usage: 'ifconfig',
+    handler: async () => {
+      try {
+        const response = await fetch('https://ifconfig.me/all.json')
+        if (!response.ok) throw new Error('Failed to fetch')
+        const data = await response.json()
+
+        const output = [
+          'eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>',
+          `      inet ${data.ip_addr || 'unknown'}`,
+          `      remote host: ${data.remote_host || 'unknown'}`,
+          `      port: ${data.port || 'unknown'}`,
+        ].join('\n')
+
+        return { output }
+      } catch {
+        return { error: 'ifconfig: unable to fetch network information' }
+      }
+    },
+  },
+
+  uptime: {
+    name: 'uptime',
+    description: 'Show time since site was built',
+    usage: 'uptime [-p] [-s]',
+    options: [
+      { flag: '-p', description: 'Pretty format' },
+      { flag: '-s', description: 'Build timestamp' },
+    ],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('uptime', 'Show time since site was built', 'uptime [-p] [-s]', [
+          { flag: '-p', description: 'Pretty format' },
+          { flag: '-s', description: 'Build timestamp' },
+        ])
+      }
+
+      const buildTime = new Date(__BUILD_TIME__)
+      const now = new Date()
+      const diff = now.getTime() - buildTime.getTime()
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+      if (args.includes('-s')) {
+        return { output: buildTime.toISOString() }
+      }
+
+      if (args.includes('-p')) {
+        return { output: `up ${days} days, ${hours} hours, ${minutes} minutes` }
+      }
+
+      return {
+        output: `up ${days} days, ${hours} hours, ${minutes} minutes (built ${buildTime.toLocaleString()})`,
+      }
+    },
+  },
+
+  theme: {
+    name: 'theme',
+    description: 'Manage terminal themes',
+    usage: 'theme [-l] [name]',
+    options: [
+      { flag: '-l', description: 'List available themes' },
+      { flag: '-s <name>', description: 'Set theme' },
+    ],
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('theme', 'Manage terminal themes', 'theme [-l] [name]', [
+          { flag: '-l', description: 'List available themes' },
+          { flag: '-s <name>', description: 'Set theme' },
+        ])
+      }
+
+      if (args.includes('-l')) {
+        const output = themeIds
+          .map((id) => {
+            const t = themes[id]
+            const current = id === getCurrentThemeId() ? ' (current)' : ''
+            return `  ${id.padEnd(16)} ${t.description}${current}`
+          })
+          .join('\n')
+        return { output: `Available themes:\n${output}` }
+      }
+
+      const setIndex = args.indexOf('-s')
+      const themeName = setIndex !== -1 ? args[setIndex + 1] : args[0]
+
+      if (themeName) {
+        if (!themes[themeName]) {
+          return { error: `theme: '${themeName}' not found. Use 'theme -l' to list themes.` }
+        }
+        setTheme(themeName)
+        return { output: `Theme set to '${themeName}'` }
+      }
+
+      const current = themes[getCurrentThemeId()]
+      return { output: `Current theme: ${current.name} - ${current.description}` }
+    },
+  },
+
+  motd: {
+    name: 'motd',
+    description: 'Display message of the day',
+    usage: 'motd',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('motd', 'Display message of the day', 'motd')
+      }
+
+      const output = [
+        ASCII_BANNER,
+        '',
+        `Welcome to ${siteData.name}'s terminal portfolio`,
+        '',
+        "Type 'help' to see available commands",
+        "Type 'cat about' to learn more about me",
+      ].join('\n')
+
+      return { output }
+    },
+  },
+
+  export: {
+    name: 'export',
+    description: 'Download resume',
+    usage: 'export [resume]',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('export', 'Download resume', 'export [resume]')
+      }
+
+      if (typeof window !== 'undefined') {
+        const link = document.createElement('a')
+        link.href = siteData.resume.url
+        link.download = 'resume.pdf'
+        link.click()
+      }
+
+      return { output: 'Downloading resume...' }
+    },
+  },
+
+  // ============================================
+  // Easter Egg Commands
+  // ============================================
+
+  sudo: {
+    name: 'sudo',
+    description: 'Execute command as superuser',
+    usage: 'sudo <command>',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('sudo', 'Execute command as superuser', 'sudo <command>')
+      }
+
+      const responses = [
+        `${siteData.username} is not in the sudoers file. This incident will be reported.`,
+        'Nice try, but you are not root here.',
+        'Permission denied: This is a portfolio, not a real server!',
+        'sudo: unable to initialize admin privileges: Too cool for school',
+        'Access denied. Have you tried asking nicely?',
+      ]
+      const response = responses[Math.floor(Math.random() * responses.length)]
+      return { error: response }
+    },
+  },
+
+  sl: {
+    name: 'sl',
+    description: 'Steam locomotive',
+    usage: 'sl',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('sl', 'Steam locomotive (you meant ls, right?)', 'sl')
+      }
+
+      const train = `
+      ====        ________                ___________
+  _D _|  |_______/        \\__I_I_____===__|_________|
+   |(_)---  |   H\\________/ |   |        =|___ ___|
+   /     |  |   H  |  |     |   |         ||_| |_||
+  |      |  |   H  |__--------------------| [___] |
+  | ________|___H__/__|_____/[][]~\\_______|       |
+  |/ |   |-----------I_____I [][] []  D   |=======|_
+__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y___________|__
+ |/-=|___|=O=====O=====O=====O   |_____/~\\___/
+  \\_/      \\__/  \\__/  \\__/  \\__/      \\_/
+
+                      You meant 'ls', right?
+`
+      return { output: train }
+    },
+  },
+
+  cowsay: {
+    name: 'cowsay',
+    description: 'Cow says moo',
+    usage: 'cowsay [message]',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('cowsay', 'Generate an ASCII cow with a message', 'cowsay [message]')
+      }
+
+      const message = args.length > 0 ? args.join(' ') : 'Moo! Linux is great!'
+      const maxLen = Math.min(message.length, 40)
+      const lines: string[] = []
+
+      // Word wrap message
+      for (let i = 0; i < message.length; i += maxLen) {
+        lines.push(message.slice(i, i + maxLen))
+      }
+
+      const borderLen = Math.max(...lines.map(l => l.length)) + 2
+      const top = ' ' + '_'.repeat(borderLen)
+      const bottom = ' ' + '-'.repeat(borderLen)
+
+      let bubble: string
+      if (lines.length === 1) {
+        bubble = `${top}\n< ${lines[0].padEnd(borderLen - 2)} >\n${bottom}`
+      } else {
+        const middle = lines.map((line, i) => {
+          const prefix = i === 0 ? '/' : i === lines.length - 1 ? '\\' : '|'
+          const suffix = i === 0 ? '\\' : i === lines.length - 1 ? '/' : '|'
+          return `${prefix} ${line.padEnd(borderLen - 2)} ${suffix}`
+        }).join('\n')
+        bubble = `${top}\n${middle}\n${bottom}`
+      }
+
+      const cow = `
+        \\   ^__^
+         \\  (oo)\\_______
+            (__)\\       )\\/\\
+                ||----w |
+                ||     ||`
+
+      return { output: bubble + cow }
+    },
+  },
+
+  matrix: {
+    name: 'matrix',
+    description: 'Enter the Matrix',
+    usage: 'matrix',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('matrix', 'Display Matrix-style digital rain', 'matrix')
+      }
+
+      const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789'
+      const width = 60
+      const height = 15
+      const lines: string[] = []
+
+      for (let y = 0; y < height; y++) {
+        let line = ''
+        for (let x = 0; x < width; x++) {
+          if (Math.random() > 0.7) {
+            line += chars[Math.floor(Math.random() * chars.length)]
+          } else {
+            line += ' '
+          }
+        }
+        lines.push(line)
+      }
+
+      const output = [
+        '',
+        ...lines,
+        '',
+        '       Wake up, Neo...',
+        '       The Matrix has you...',
+        '',
+      ].join('\n')
+
+      return { output }
+    },
+  },
+
+  coffee: {
+    name: 'coffee',
+    description: 'Get some coffee',
+    usage: 'coffee',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('coffee', 'Display ASCII coffee cup', 'coffee')
+      }
+
+      const coffee = `
+        ( (
+         ) )
+      .______.
+      |      |]
+      \\      /
+       \`----'
+
+   Here's your coffee!
+   Now get back to work.
+`
+      return { output: coffee }
+    },
+  },
+
+  neofetch: {
+    name: 'neofetch',
+    description: 'Display system information',
+    usage: 'neofetch',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('neofetch', 'Display system information stylized', 'neofetch')
+      }
+
+      const logo = [
+        '        .',
+        '       /#\\',
+        '      /###\\       ',
+        '     /p]]]y\\      ',
+        '    /##q]]]w##\\   ',
+        '   /#####]]]####\\',
+        '  /######]]]#####\\',
+        ' /#######]]]######\\',
+        '/########]]]#######\\',
+        '         ]]]',
+        '         ]]]',
+        '         ]]]',
+      ]
+
+      const info = [
+        `${siteData.username}@portfolio`,
+        '-'.repeat(20),
+        `OS: TerminalPortfolio 1.0.0`,
+        `Host: ${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}`,
+        `Kernel: React 19`,
+        `Shell: bash 5.0`,
+        `Theme: ${getCurrentThemeId()}`,
+        `Terminal: Web Browser`,
+        `CPU: JavaScript V8`,
+        `Memory: ${typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || '?' : '?'} cores`,
+        '',
+        '',
+      ]
+
+      const combined = logo.map((line, i) => {
+        const infoLine = info[i] || ''
+        return `${line.padEnd(25)} ${infoLine}`
+      }).join('\n')
+
+      return { output: combined }
+    },
+  },
+
+  fortune: {
+    name: 'fortune',
+    description: 'Display a random quote',
+    usage: 'fortune',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('fortune', 'Display a random inspirational quote', 'fortune')
+      }
+
+      const fortunes = [
+        '"The best way to predict the future is to invent it." - Alan Kay',
+        '"Simplicity is the ultimate sophistication." - Leonardo da Vinci',
+        '"First, solve the problem. Then, write the code." - John Johnson',
+        '"Code is like humor. When you have to explain it, it\'s bad." - Cory House',
+        '"Make it work, make it right, make it fast." - Kent Beck',
+        '"The only way to do great work is to love what you do." - Steve Jobs',
+        '"Talk is cheap. Show me the code." - Linus Torvalds',
+        '"Programming isn\'t about what you know; it\'s about what you can figure out." - Chris Pine',
+        '"The computer was born to solve problems that did not exist before." - Bill Gates',
+        '"Any fool can write code that a computer can understand. Good programmers write code that humans can understand." - Martin Fowler',
+        '"Debugging is twice as hard as writing the code in the first place." - Brian Kernighan',
+        '"It\'s not a bug, it\'s a feature." - Anonymous',
+        '"There are only two hard things in Computer Science: cache invalidation and naming things." - Phil Karlton',
+      ]
+
+      const fortune = fortunes[Math.floor(Math.random() * fortunes.length)]
+      return { output: `\n${fortune}\n` }
+    },
+  },
+
+  cal: {
+    name: 'cal',
+    description: 'Display a calendar',
+    usage: 'cal',
+    handler: (args) => {
+      if (hasHelpFlag(args)) {
+        return formatHelp('cal', 'Display calendar for current month', 'cal')
+      }
+
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = now.getMonth()
+      const today = now.getDate()
+
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ]
+
+      const firstDay = new Date(year, month, 1).getDay()
+      const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+      const header = `${monthNames[month]} ${year}`.padStart(13 + Math.floor(monthNames[month].length / 2)).padEnd(20)
+      const dayHeaders = 'Su Mo Tu We Th Fr Sa'
+
+      const lines: string[] = [header, dayHeaders]
+      let week = '   '.repeat(firstDay)
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayStr = day === today ? `[${day.toString().padStart(2)}]` : day.toString().padStart(2) + ' '
+        week += dayStr.slice(0, 3)
+
+        if ((firstDay + day) % 7 === 0 || day === daysInMonth) {
+          lines.push(week.trimEnd())
+          week = ''
+        }
+      }
+
+      return { output: lines.join('\n') }
+    },
+  },
 }
 
-// Get command names for autocomplete
-export function getCommandNames(): string[] {
-  return Object.keys(commands);
-}
-
-// Get section names for autocomplete
-export function getSectionNames(): string[] {
-  return [...SECTIONS];
-}
+// Get all command names for autocomplete
+export const commandNames = Object.keys(commands)

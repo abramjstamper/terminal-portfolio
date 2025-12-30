@@ -1,152 +1,224 @@
-import { useReducer, useCallback } from 'react';
-import type { TerminalState, TerminalAction, TerminalLine } from '@/types/terminal';
+import { useReducer, useCallback, useEffect, useRef } from 'react'
+import type { TerminalState, TerminalAction, OutputLine, CommandResult } from '../types/terminal'
+import { parseCommandString } from '../lib/commands/parser'
+import { commands } from '../lib/commands/handlers'
+import { siteData } from '../config/data/site-data'
 
-const initialState: TerminalState = {
-  lines: [],
-  history: [],
-  historyIndex: -1,
-  currentInput: '',
-};
+const STORAGE_KEY = 'terminal-history'
 
 function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return Math.random().toString(36).substring(2, 9)
+}
+
+function getInitialHistory(): string[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    return saved ? JSON.parse(saved) : []
+  } catch {
+    return []
+  }
+}
+
+function saveHistory(history: string[]): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(-100)))
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 function terminalReducer(state: TerminalState, action: TerminalAction): TerminalState {
   switch (action.type) {
-    case 'ADD_LINE':
+    case 'ADD_OUTPUT':
       return {
         ...state,
-        lines: [
-          ...state.lines,
-          {
-            ...action.payload,
-            id: generateId(),
-            timestamp: Date.now(),
-          } as TerminalLine,
-        ],
-      };
-
-    case 'CLEAR':
-      return {
-        ...state,
-        lines: [],
-      };
-
-    case 'SET_INPUT':
-      return {
-        ...state,
-        currentInput: action.payload,
-      };
-
-    case 'ADD_TO_HISTORY':
-      // Don't add empty commands or duplicates of the last command
-      if (!action.payload.trim() || action.payload === state.history[state.history.length - 1]) {
-        return {
-          ...state,
-          historyIndex: -1,
-        };
+        output: [...state.output, action.payload],
       }
+    case 'CLEAR_OUTPUT':
       return {
         ...state,
-        history: [...state.history, action.payload],
-        historyIndex: -1,
-      };
-
-    case 'NAVIGATE_HISTORY': {
-      if (state.history.length === 0) return state;
-
-      let newIndex: number;
-      if (action.payload === 'up') {
-        // Going back in history
-        if (state.historyIndex === -1) {
-          newIndex = state.history.length - 1;
-        } else {
-          newIndex = Math.max(0, state.historyIndex - 1);
-        }
-      } else {
-        // Going forward in history
-        if (state.historyIndex === -1) {
-          return state;
-        }
-        newIndex = state.historyIndex + 1;
-        if (newIndex >= state.history.length) {
-          return {
-            ...state,
-            historyIndex: -1,
-            currentInput: '',
-          };
-        }
+        output: [],
       }
-
+    case 'SET_HISTORY':
       return {
         ...state,
-        historyIndex: newIndex,
-        currentInput: state.history[newIndex] || '',
-      };
+        history: action.payload,
+        historyIndex: action.payload.length,
+      }
+    case 'ADD_TO_HISTORY': {
+      const newHistory = [...state.history, action.payload]
+      saveHistory(newHistory)
+      return {
+        ...state,
+        history: newHistory,
+        historyIndex: newHistory.length,
+      }
     }
-
-    case 'RESET_HISTORY_INDEX':
-      return {
-        ...state,
-        historyIndex: -1,
-      };
-
     default:
-      return state;
+      return state
+  }
+}
+
+function getInitialState(): TerminalState {
+  return {
+    output: [],
+    history: getInitialHistory(),
+    historyIndex: 0,
   }
 }
 
 export function useTerminal() {
-  const [state, dispatch] = useReducer(terminalReducer, initialState);
+  const [state, dispatch] = useReducer(terminalReducer, undefined, getInitialState)
+  const motdShown = useRef(false)
 
-  const addLine = useCallback((type: TerminalLine['type'], content: string | React.ReactNode) => {
-    dispatch({ type: 'ADD_LINE', payload: { type, content } });
-  }, []);
+  // Show motd on mount (ref prevents double-render in StrictMode)
+  useEffect(() => {
+    if (motdShown.current) return
+    motdShown.current = true
 
-  const addInput = useCallback((content: string) => {
-    addLine('input', content);
-  }, [addLine]);
+    const motdResult = commands.motd.handler([], [])
+    if ('output' in motdResult && motdResult.output) {
+      dispatch({
+        type: 'ADD_OUTPUT',
+        payload: {
+          id: generateId(),
+          type: 'system',
+          content: motdResult.output,
+        },
+      })
+    }
+  }, [])
 
-  const addOutput = useCallback((content: string | React.ReactNode) => {
-    addLine('output', content);
-  }, [addLine]);
+  const getPrompt = useCallback(() => {
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : siteData.hostname
+    const shortHostname = hostname.split('.')[0] || 'portfolio'
+    return { username: siteData.username, hostname: shortHostname }
+  }, [])
 
-  const addError = useCallback((content: string) => {
-    addLine('error', content);
-  }, [addLine]);
+  const addOutput = useCallback((line: Omit<OutputLine, 'id'>) => {
+    dispatch({
+      type: 'ADD_OUTPUT',
+      payload: { ...line, id: generateId() },
+    })
+  }, [])
 
-  const addSystem = useCallback((content: string | React.ReactNode) => {
-    addLine('system', content);
-  }, [addLine]);
+  const clearOutput = useCallback(() => {
+    dispatch({ type: 'CLEAR_OUTPUT' })
+  }, [])
 
-  const clear = useCallback(() => {
-    dispatch({ type: 'CLEAR' });
-  }, []);
+  const executeCommand = useCallback(
+    async (input: string) => {
+      const { username, hostname } = getPrompt()
+      const prompt = `${username}@${hostname}:~$ `
 
-  const setInput = useCallback((value: string) => {
-    dispatch({ type: 'SET_INPUT', payload: value });
-  }, []);
+      // Add command to output
+      addOutput({
+        type: 'command',
+        content: input,
+        prompt,
+      })
 
-  const addToHistory = useCallback((command: string) => {
-    dispatch({ type: 'ADD_TO_HISTORY', payload: command });
-  }, []);
+      // Add to history
+      if (input.trim()) {
+        dispatch({ type: 'ADD_TO_HISTORY', payload: input })
+      }
 
-  const navigateHistory = useCallback((direction: 'up' | 'down') => {
-    dispatch({ type: 'NAVIGATE_HISTORY', payload: direction });
-  }, []);
+      // Parse command
+      const parseResult = parseCommandString(input)
+
+      if (parseResult.error) {
+        addOutput({
+          type: 'error',
+          content: parseResult.error,
+        })
+        return
+      }
+
+      if (parseResult.commands.length === 0) {
+        return
+      }
+
+      // Execute commands in sequence (for && operator)
+      for (const parsedCmd of parseResult.commands) {
+        const handler = commands[parsedCmd.command]
+
+        if (!handler) {
+          addOutput({
+            type: 'error',
+            content: `${parsedCmd.command}: command not found`,
+          })
+          return // Stop on first error
+        }
+
+        try {
+          const result: CommandResult = await Promise.resolve(
+            handler.handler(parsedCmd.args, state.history)
+          )
+
+          if (result.clearScreen) {
+            clearOutput()
+            continue
+          }
+
+          if (result.error) {
+            addOutput({
+              type: 'error',
+              content: result.error,
+            })
+            return // Stop on first error
+          }
+
+          if (result.output !== undefined) {
+            addOutput({
+              type: 'output',
+              content: result.output,
+            })
+          }
+        } catch (err) {
+          addOutput({
+            type: 'error',
+            content: `${parsedCmd.command}: ${err instanceof Error ? err.message : 'Unknown error'}`,
+          })
+          return
+        }
+      }
+    },
+    [addOutput, clearOutput, getPrompt, state.history]
+  )
+
+  const getHistoryItem = useCallback(
+    (direction: 'up' | 'down', currentIndex: number): { command: string; index: number } => {
+      const { history } = state
+      if (history.length === 0) return { command: '', index: currentIndex }
+
+      let newIndex = currentIndex
+      if (direction === 'up') {
+        newIndex = Math.max(0, currentIndex - 1)
+      } else {
+        newIndex = Math.min(history.length, currentIndex + 1)
+      }
+
+      const command = newIndex < history.length ? history[newIndex] : ''
+      return { command, index: newIndex }
+    },
+    [state]
+  )
+
+  const clearHistory = useCallback(() => {
+    dispatch({ type: 'SET_HISTORY', payload: [] })
+    saveHistory([])
+  }, [])
 
   return {
-    lines: state.lines,
+    output: state.output,
     history: state.history,
-    currentInput: state.currentInput,
-    addInput,
-    addOutput,
-    addError,
-    addSystem,
-    clear,
-    setInput,
-    addToHistory,
-    navigateHistory,
-  };
+    historyIndex: state.historyIndex,
+    getPrompt,
+    executeCommand,
+    getHistoryItem,
+    clearHistory,
+    clearOutput,
+  }
 }

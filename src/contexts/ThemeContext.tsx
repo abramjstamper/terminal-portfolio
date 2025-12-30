@@ -1,81 +1,71 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { themes, DEFAULT_THEME, type Theme } from '@/config/themes';
-
-const STORAGE_KEY = 'terminal-theme';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from 'react'
+import { themes, defaultThemeId, type Theme } from '../config/themes'
+import { registerThemeCallback, unregisterThemeCallback } from '../lib/themeRegistry'
 
 interface ThemeContextValue {
-  theme: Theme;
-  themeId: string;
-  setTheme: (id: string) => void;
-  availableThemes: string[];
+  theme: Theme
+  themeId: string
+  setThemeId: (id: string) => void
 }
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-interface ThemeProviderProps {
-  children: ReactNode;
+const STORAGE_KEY = 'terminal-theme'
+
+function getInitialThemeId(): string {
+  if (typeof window === 'undefined') return defaultThemeId
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved && themes[saved]) return saved
+  return defaultThemeId
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [themeId, setThemeId] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && themes[stored]) {
-        return stored;
-      }
-    }
-    return DEFAULT_THEME;
-  });
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [themeId, setThemeIdState] = useState(getInitialThemeId)
 
-  const theme = themes[themeId] || themes[DEFAULT_THEME];
-
-  // Persist theme preference
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, themeId);
-  }, [themeId]);
-
-  // Apply theme CSS variables
-  useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty('--color-bg', theme.colors.bg);
-    root.style.setProperty('--color-text', theme.colors.text);
-    root.style.setProperty('--color-prompt', theme.colors.prompt);
-    root.style.setProperty('--color-accent', theme.colors.accent);
-    root.style.setProperty('--color-error', theme.colors.error);
-    root.style.setProperty('--color-success', theme.colors.success);
-    root.style.setProperty('--color-link', theme.colors.link);
-    root.style.setProperty('--color-muted', theme.colors.muted);
-
-    // Update body background
-    document.body.style.backgroundColor = theme.colors.bg;
-    document.body.style.color = theme.colors.text;
-  }, [theme]);
-
-  const setTheme = useCallback((id: string) => {
+  const setThemeId = useCallback((id: string) => {
     if (themes[id]) {
-      setThemeId(id);
+      setThemeIdState(id)
+      localStorage.setItem(STORAGE_KEY, id)
     }
-  }, []);
+  }, [])
+
+  // Apply theme colors to CSS variables
+  useEffect(() => {
+    const theme = themes[themeId]
+    if (!theme) return
+
+    const root = document.documentElement
+    Object.entries(theme.colors).forEach(([key, value]) => {
+      root.style.setProperty(`--color-${key}`, value)
+    })
+  }, [themeId])
+
+  // Register theme callback for non-React command handlers
+  useEffect(() => {
+    registerThemeCallback(setThemeId, themeId)
+    return () => unregisterThemeCallback()
+  }, [setThemeId, themeId])
+
+  const theme = themes[themeId] || themes[defaultThemeId]
 
   return (
-    <ThemeContext.Provider
-      value={{
-        theme,
-        themeId,
-        setTheme,
-        availableThemes: Object.keys(themes),
-      }}
-    >
+    <ThemeContext.Provider value={{ theme, themeId, setThemeId }}>
       {children}
     </ThemeContext.Provider>
-  );
+  )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
-export function useTheme() {
-  const context = useContext(ThemeContext);
+export function useTheme(): ThemeContextValue {
+  const context = useContext(ThemeContext)
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error('useTheme must be used within a ThemeProvider')
   }
-  return context;
+  return context
 }

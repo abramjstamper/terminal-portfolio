@@ -1,98 +1,147 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root {
-    --color-bg: #0a0a0a;
-    --color-text: #00ff00;
-    --color-prompt: #ffb000;
-    --color-accent: #00ffff;
-    --color-error: #ff0000;
-    --color-success: #00ff00;
-    --color-link: #00aaff;
-    --color-muted: #4a4a4a;
-  }
-
-  html {
-    font-family: 'JetBrains Mono', 'Fira Code', Monaco, Consolas, monospace;
-  }
-
-  body {
-    background-color: var(--color-bg);
-    color: var(--color-text);
-    @apply min-h-screen m-0;
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Respect reduced motion preferences */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
+/* Theme CSS Variables - defaults to green theme */
+:root {
+  --color-bg: #0a0a0a;
+  --color-text: #00ff00;
+  --color-prompt: #ffb000;
+  --color-accent: #00ffff;
+  --color-error: #ff4444;
+  --color-success: #44ff88;
+  --color-link: #00aaff;
+  --color-muted: #669966;
 }
 
-@layer components {
-  /* Terminal container */
-  .terminal {
-    @apply font-mono text-sm leading-relaxed;
-  }
+/* Tailwind theme extension via CSS */
+@theme {
+  --color-terminal-bg: var(--color-bg);
+  --color-terminal-text: var(--color-text);
+  --color-terminal-prompt: var(--color-prompt);
+  --color-terminal-accent: var(--color-accent);
+  --color-terminal-error: var(--color-error);
+  --color-terminal-success: var(--color-success);
+  --color-terminal-link: var(--color-link);
+  --color-terminal-muted: var(--color-muted);
+}
 
-  /* Cursor blink animation */
+/* Base styles */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Terminal container */
+.terminal-container {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  position: relative;
+}
+
+/* Blinking cursor */
+.cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.2em;
+  background-color: var(--color-text);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Scanlines effect */
+.scanlines::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* CRT glow effect */
+.glow {
+  text-shadow: 0 0 5px currentColor;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
   .cursor {
-    @apply inline-block w-2 h-4 animate-blink;
-    background-color: var(--color-text);
+    animation: none;
+    opacity: 1;
   }
 
-  /* Scanline effect overlay */
-  .scanlines {
-    @apply pointer-events-none fixed inset-0 z-50;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0.3),
-      rgba(0, 0, 0, 0.3) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-    animation: scanlines-flicker 0.1s infinite;
-  }
-
-  @keyframes scanlines-flicker {
-    0%, 100% { opacity: 0.8; }
-    50% { opacity: 0.85; }
-  }
-
-  /* CRT glow effect */
-  .crt-glow {
-    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
-  }
-
-  /* Skip to content link for accessibility */
-  .skip-link {
-    @apply absolute -top-10 left-0 bg-terminal-green text-terminal-bg px-4 py-2 z-50;
-    @apply focus:top-0 transition-all;
+  .scanlines::before {
+    display: none;
   }
 }
 
-@layer utilities {
-  /* Text glow utilities */
-  .text-glow-sm {
-    text-shadow: 0 0 2px currentColor;
-  }
+/* Link styles within terminal */
+.terminal-link {
+  color: var(--color-link);
+  text-decoration: underline;
+  cursor: pointer;
+}
 
-  .text-glow-md {
-    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
-  }
+.terminal-link:hover {
+  color: var(--color-accent);
+}
 
-  .text-glow-lg {
-    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor;
-  }
+/* Focus styles for accessibility */
+input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 8px;
+  z-index: 1000;
+  text-decoration: underline;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text);
 }

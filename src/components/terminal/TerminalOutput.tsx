@@ -1,68 +1,44 @@
-import type { TerminalLine } from '@/types/terminal';
+import type { OutputLine } from '../../types/terminal'
 
 interface TerminalOutputProps {
-  lines: TerminalLine[];
+  lines: OutputLine[]
 }
 
 export function TerminalOutput({ lines }: TerminalOutputProps) {
   return (
-    <div className="space-y-1" role="log" aria-live="polite">
-      {lines.map(line => (
-        <TerminalLineDisplay key={line.id} line={line} />
+    <div role="log" aria-live="polite" aria-label="Terminal output">
+      {lines.map((line) => (
+        <div key={line.id} className="mb-1">
+          {line.type === 'command' && (
+            <div className="flex">
+              <span className="text-terminal-success">{line.prompt?.split('@')[0]}</span>
+              <span className="text-terminal-muted">@</span>
+              <span className="text-terminal-link">
+                {line.prompt?.split('@')[1]?.split(':')[0]}
+              </span>
+              <span className="text-terminal-muted">:</span>
+              <span className="text-terminal-prompt">~</span>
+              <span className="text-terminal-muted">$ </span>
+              <span className="text-terminal-text">{line.content}</span>
+            </div>
+          )}
+          {line.type === 'output' && (
+            <pre className="text-terminal-text whitespace-pre-wrap font-mono">
+              {line.content}
+            </pre>
+          )}
+          {line.type === 'error' && (
+            <pre className="text-terminal-error whitespace-pre-wrap font-mono">
+              {line.content}
+            </pre>
+          )}
+          {line.type === 'system' && (
+            <pre className="text-terminal-text whitespace-pre-wrap font-mono">
+              {line.content}
+            </pre>
+          )}
+        </div>
       ))}
     </div>
-  );
-}
-
-interface TerminalLineDisplayProps {
-  line: TerminalLine;
-}
-
-function TerminalLineDisplay({ line }: TerminalLineDisplayProps) {
-  switch (line.type) {
-    case 'input':
-      return (
-        <div className="flex">
-          <Prompt />
-          <span className="text-terminal-text">{line.content}</span>
-        </div>
-      );
-
-    case 'output':
-      return (
-        <div className="text-terminal-text pl-0">
-          {line.content}
-        </div>
-      );
-
-    case 'error':
-      return (
-        <div className="text-terminal-error pl-0">
-          {line.content}
-        </div>
-      );
-
-    case 'system':
-      return (
-        <div className="text-terminal-prompt pl-0">
-          {line.content}
-        </div>
-      );
-
-    default:
-      return null;
-  }
-}
-
-function Prompt() {
-  return (
-    <span className="mr-2 shrink-0">
-      <span className="text-terminal-success">guest</span>
-      <span className="text-terminal-muted">@</span>
-      <span className="text-terminal-link">portfolio</span>
-      <span className="text-terminal-muted">:</span>
-      <span className="text-terminal-prompt">~</span>
-      <span className="text-terminal-muted">$ </span>
-    </span>
-  );
+  )
 }

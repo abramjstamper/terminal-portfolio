@@ -1,29 +1,25 @@
-// Registry to allow command handlers to access theme functionality
-// This bridges the gap between React context and non-React command handlers
+import { defaultThemeId } from '../config/themes'
 
-type SetThemeFn = (id: string) => void;
+let themeCallback: ((id: string) => void) | null = null
+let currentThemeId: string = defaultThemeId
 
-let setThemeCallback: SetThemeFn | null = null;
-let currentThemeId: string = 'green';
-
-export function registerThemeCallback(callback: SetThemeFn, themeId: string) {
-  setThemeCallback = callback;
-  currentThemeId = themeId;
+export function registerThemeCallback(
+  callback: (id: string) => void,
+  initialId: string
+): void {
+  themeCallback = callback
+  currentThemeId = initialId
 }
 
-export function unregisterThemeCallback() {
-  setThemeCallback = null;
+export function unregisterThemeCallback(): void {
+  themeCallback = null
 }
 
-export function setTheme(id: string): boolean {
-  if (setThemeCallback) {
-    setThemeCallback(id);
-    currentThemeId = id;
-    return true;
-  }
-  return false;
+export function setTheme(id: string): void {
+  themeCallback?.(id)
+  currentThemeId = id
 }
 
 export function getCurrentThemeId(): string {
-  return currentThemeId;
+  return currentThemeId
 }

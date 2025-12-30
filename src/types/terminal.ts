@@ -1,52 +1,39 @@
-export interface TerminalLine {
-  id: string;
-  type: 'input' | 'output' | 'error' | 'system';
-  content: string | React.ReactNode;
-  timestamp: number;
-}
+import type { ReactNode } from 'react'
 
-export interface ParsedCommand {
-  command: string;
-  args: string[];
-  raw: string;
-}
-
-export interface ParsedInput {
-  type: 'single' | 'chain' | 'error';
-  commands?: ParsedCommand[];
-  error?: string;
+export interface OutputLine {
+  id: string
+  type: 'command' | 'output' | 'error' | 'system'
+  content: ReactNode
+  prompt?: string
 }
 
 export interface CommandResult {
-  output: string | React.ReactNode;
-  isError?: boolean;
-  clear?: boolean;
+  output?: ReactNode
+  error?: string
+  clearScreen?: boolean
 }
 
-export interface CommandOption {
-  flag: string;
-  description: string;
+export interface ParsedCommand {
+  command: string
+  args: string[]
 }
 
-export interface Command {
-  name: string;
-  description: string;
-  usage?: string;
-  options?: CommandOption[];
-  handler: (args: string[], history?: string[]) => CommandResult;
-}
-
-export interface TerminalState {
-  lines: TerminalLine[];
-  history: string[];
-  historyIndex: number;
-  currentInput: string;
+export interface CommandDefinition {
+  name: string
+  description: string
+  usage: string
+  options?: { flag: string; description: string }[]
+  handler: (args: string[], history: string[]) => CommandResult | Promise<CommandResult>
 }
 
 export type TerminalAction =
-  | { type: 'ADD_LINE'; payload: Omit<TerminalLine, 'id' | 'timestamp'> }
-  | { type: 'CLEAR' }
-  | { type: 'SET_INPUT'; payload: string }
+  | { type: 'ADD_OUTPUT'; payload: OutputLine }
+  | { type: 'CLEAR_OUTPUT' }
+  | { type: 'SET_HISTORY'; payload: string[] }
   | { type: 'ADD_TO_HISTORY'; payload: string }
-  | { type: 'NAVIGATE_HISTORY'; payload: 'up' | 'down' }
-  | { type: 'RESET_HISTORY_INDEX' };
+
+export interface TerminalState {
+  output: OutputLine[]
+  history: string[]
+  historyIndex: number
+}

@@ -1,4 +1,4 @@
-# Terminal Portfolio Website - Complete Planning Document
+# whoami.dev - Complete Planning Document
 
 ## Project Overview
 
@@ -24,18 +24,18 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 ## Technical Stack
 
 ### Core Technologies
-- **Build Tool**: Vite (modern replacement for Create React App)
-- **Framework**: React 18 + TypeScript 5
-- **Styling**: Tailwind CSS 3 (utility-first, tree-shakeable)
-- **Routing**: React Router 6
+- **Build Tool**: Vite 7.x
+- **Framework**: React 19 + TypeScript 5.9
+- **Styling**: Tailwind CSS 4.x with CSS custom properties for theming
+- **Routing**: React Router 7
 - **Testing**: Vitest + React Testing Library
-- **SSG**: vite-plugin-ssr or vite-ssg (for SEO pre-rendering)
+- **SSG**: TBD (vite-plugin-ssr or vite-ssg for SEO pre-rendering)
 
 ### Why These Choices
-- **Vite**: Fast builds, modern tooling, better than CRA
-- **Tailwind**: Utility-first CSS, no opinions on React (vs Bulma), professional choice
-- **Pre-rendering**: Generates static HTML at build time for SEO (Google sees full content)
-- **TypeScript**: Type safety, shows professional development practices
+- **Vite**: Fast builds, modern tooling, HMR, better than CRA
+- **Tailwind**: Utility-first CSS with CSS variables for dynamic theming
+- **React 19**: Latest stable with improved performance
+- **TypeScript 5.9**: Type safety, shows professional development practices
 
 ### Deployment Strategy
 - **Server**: Apache (current setup, keep it)
@@ -44,22 +44,6 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 - **Process**: Build → Generate static files → Copy to `/var/www/html`
 - **SEO Solution**: Pre-render all routes at build time (no server-side runtime needed)
 
-### Client-Side Routing & SEO
-**Question**: Is pure Vite with client-side routing bad for SEO?
-**Answer**: Yes, it has known issues because search engine crawlers see empty HTML shell initially.
-
-**Solution**: Use Vite SSG plugins to pre-render static HTML files at build time:
-- Search engines get pre-rendered HTML with full content
-- Client-side routing still works after hydration
-- No async server-side data needed
-- Deploy static files to Apache as before
-- Best of both worlds: SEO + interactivity
-
-### Analytics
-- Google Analytics 4 (already in use)
-- Track terminal vs nav mode usage
-- Track popular commands
-
 ---
 
 ## Core Concept & Features
@@ -67,920 +51,998 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 ### Dual Interface Design
 
 #### 1. Terminal Mode (Primary)
-**Default experience** - Interactive command-line interface:
-- Green-on-black default theme (classic CRT phosphor)
+**Default experience** - Full-screen interactive command-line interface:
+- **No nav bar** - terminal takes over the entire viewport
+- Multiple color themes with CSS variable-based theming
 - Blinking cursor with command input
 - Command history (up/down arrows)
-- Tab completion for commands
+- Tab completion for commands, sections, and theme names
 - ASCII art banner on load
-- Multiple color themes available
-- Optional scanlines and CRT effects
-- Simulated typing delay (configurable)
-
-**Available Commands**:
-```
-Core Commands:
-- help              Show all available commands
-- ls                List available sections
-- cat <section>     Display section content
-- clear             Clear terminal screen
-- history           Show command history
-- man <command>     Manual page for command
-- theme [name]      List or switch themes
-- motd              Show welcome banner
-- export            Download resume PDF
-
-Easter Eggs:
-- whoami            Identity poem/message about you
-- sudo <cmd>        Witty denial or unlock secret theme
-- sl                ASCII train animation (typo of ls)
-- cowsay <text>     ASCII cow with speech bubble
-- matrix            Brief matrix rain animation
-- hack              Fake hacking sequence with progress bars
-- coffee            ASCII coffee cup + coding quote
-- pong              Simple ASCII pong game
-- snake             Simple ASCII snake game
-- exit              Switch to nav mode with message
-- pwd               Print working directory
-- uname             Fake system info
-```
-
-**Command Autocomplete**:
-- Tab completion for commands
-- Tab completion for section names (after `cat`, `man`)
-- Tab completion for theme names (after `theme`)
-- Fuzzy matching for typos
-- Up/down arrow for command history
+- Optional scanlines and CRT glow effects
+- Shell operator support
+- Small "Switch to Navigation" link (subtle, corner position)
 
 #### 2. Navigation Mode (Fallback)
-**Traditional website experience**:
-- Prominent "Skip to Navigation" button at top of terminal
-- Clean, modern nav bar: About | Experience | Timeline | Projects | Skills | Resume | Contact
-- Smooth scrolling to sections
-- Same content, different presentation (cards/grid layout)
-- Default mode on mobile devices
-- Fully accessible and SEO-friendly
+**Traditional website experience** for accessibility and mobile:
 
-**Toggle**: Users can switch between modes anytime
+**Header**:
+- Sticky nav bar: About | Experience | Skills | Projects | Contact
+- "Switch to Terminal" button (right side)
+- Name/logo on left
+
+**Hero Section**:
+- Name, title, brief tagline
+- Profile photo (optional)
+- CTA buttons: View Resume | Contact Me
+
+**About Section**:
+- Bio text
+- Key highlights or fun facts
+
+**Experience Section** (Interactive Timeline):
+- Horizontal timeline with nodes for each role
+- Default state: Company name + title visible at each node
+- Hover/click expands: full description, key projects, tech stack, dates
+- Smooth animation on expand
+- Mobile: tap to expand (no hover)
+
+**Skills Section**:
+- Grouped by category (Languages, Frameworks, Tools, etc.)
+- Visual representation (tags, progress bars, or simple lists)
+
+**Projects Section**:
+- Card grid
+- Each card: Screenshot/icon, title, description, tech stack, links (GitHub, live demo)
+
+**Contact Section**:
+- Email, LinkedIn, GitHub links
+- Optional contact form
+
+**Footer**:
+- Copyright, "Built with React" badge
+- "Switch to Terminal" link
+
+**Responsive Behavior**:
+- Mobile: hamburger menu, stacked sections
+- Desktop: full nav, side-by-side layouts where appropriate
+- Default to nav mode on mobile (terminal requires keyboard)
+
+**Styling**:
+- Clean, minimal design
+- Can share color palette with terminal themes (or independent)
+- Smooth scroll between sections
+- Subtle animations on scroll (respect reduced-motion)
+
+---
+
+## Page Layout & Routing
+
+### URL Structure
+```
+/                   # Terminal mode (default on desktop)
+/nav                # Navigation mode (default on mobile, or via toggle)
+```
+
+**Alternative approach** (single page, no routes):
+```
+/                   # Both modes on same page, toggle with state
+                    # Mode preference stored in localStorage
+                    # URL hash for nav sections: /#about, /#experience
+```
+
+### Recommended: Single Page with Mode Toggle
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                        App.tsx                          │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │              ModeContext (terminal|nav)           │  │
+│  │  ┌─────────────────────────────────────────────┐  │  │
+│  │  │           ThemeContext (colors)             │  │  │
+│  │  │                                             │  │  │
+│  │  │   mode === 'terminal'    mode === 'nav'     │  │  │
+│  │  │         ↓                      ↓            │  │  │
+│  │  │   ┌──────────┐          ┌───────────┐       │  │  │
+│  │  │   │ Terminal │          │  NavSite  │       │  │  │
+│  │  │   │   Mode   │          │   Mode    │       │  │  │
+│  │  │   └──────────┘          └───────────┘       │  │  │
+│  │  │                                             │  │  │
+│  │  └─────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Terminal Mode Layout
+```
+┌─────────────────────────────────────────────────────────┐
+│ [Switch to Nav ↗]                              100% vh  │
+│                                                         │
+│  ██╗    ██╗██╗  ██╗ ██████╗  █████╗ ███╗   ███╗██╗     │
+│  ██║    ██║██║  ██║██╔═══██╗██╔══██╗████╗ ████║██║     │
+│  ██║ █╗ ██║███████║██║   ██║███████║██╔████╔██║██║     │
+│  ██║███╗██║██╔══██║██║   ██║██╔══██║██║╚██╔╝██║██║     │
+│  ╚███╔███╔╝██║  ██║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║     │
+│   ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     │
+│                                                         │
+│  Welcome to whoami.dev - Type 'help' to get started    │
+│                                                         │
+│  guest@portfolio:~$ help                                │
+│  Available commands:                                    │
+│    help      Show this help message                     │
+│    cat       Display section content                    │
+│    ...                                                  │
+│                                                         │
+│  guest@portfolio:~$ █                                   │
+│                                                         │
+│─────────────────────────────────────────────────────────│
+│  (scrollable output area, input fixed at bottom)        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Navigation Mode Layout
+
+**Desktop (≥1024px)**:
+```
+┌─────────────────────────────────────────────────────────┐
+│  LOGO    About  Experience  Skills  Projects  [⌨ Term] │  ← Sticky header
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│                      HERO                               │
+│              Abram Stamper                              │
+│           Software Engineer                             │
+│      [View Resume]    [Contact Me]                      │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌─────────────────┐  ┌─────────────────────────────┐   │
+│  │                 │  │                             │   │
+│  │     Photo       │  │   About text goes here...  │   │
+│  │   (optional)    │  │                             │   │
+│  │                 │  │                             │   │
+│  └─────────────────┘  └─────────────────────────────┘   │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│                     EXPERIENCE                          │
+│                                                         │
+│  Default state (nodes with brief info):                 │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │                                                 │    │
+│  │    ●────────────●────────────●────────────●     │    │
+│  │    │            │            │            │     │    │
+│  │ ┌──┴──┐      ┌──┴──┐      ┌──┴──┐      ┌──┴──┐  │    │
+│  │ │ Co1 │      │ Co2 │      │ Co3 │      │ Co4 │  │    │
+│  │ │Title│      │Title│      │Title│      │Title│  │    │
+│  │ └─────┘      └─────┘      └─────┘      └─────┘  │    │
+│  │  2024         2022         2020         2018    │    │
+│  └─────────────────────────────────────────────────┘    │
+│                                                         │
+│  On hover/click (expanded detail card):                 │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │                                                 │    │
+│  │    ●────────────◉────────────●────────────●     │    │
+│  │                 │                               │    │
+│  │         ┌──────────────────────────┐            │    │
+│  │         │  Senior Engineer         │            │    │
+│  │         │  Company Name            │            │    │
+│  │         │  Jan 2022 - Present      │            │    │
+│  │         │                          │            │    │
+│  │         │  • Led team of 5 devs    │            │    │
+│  │         │  • Built microservices   │            │    │
+│  │         │  • Reduced latency 40%   │            │    │
+│  │         │                          │            │    │
+│  │         │  Tech: Go, K8s, AWS      │            │    │
+│  │         │  Projects: API Platform  │            │    │
+│  │         └──────────────────────────┘            │    │
+│  └─────────────────────────────────────────────────┘    │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│                       SKILLS                            │
+│  Languages:    [Python] [TypeScript] [Go] [Rust]        │
+│  Frameworks:   [React] [Node.js] [FastAPI]              │
+│  Tools:        [Docker] [K8s] [AWS] [Terraform]         │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│                      PROJECTS                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │
+│  │ ┌─────────┐ │  │ ┌─────────┐ │  │ ┌─────────┐ │      │
+│  │ │ Image   │ │  │ │ Image   │ │  │ │ Image   │ │      │
+│  │ └─────────┘ │  │ └─────────┘ │  │ └─────────┘ │      │
+│  │ Project 1   │  │ Project 2   │  │ Project 3   │      │
+│  │ Description │  │ Description │  │ Description │      │
+│  │ [GH] [Demo] │  │ [GH] [Demo] │  │ [GH] [Demo] │      │
+│  └─────────────┘  └─────────────┘  └─────────────┘      │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│                      CONTACT                            │
+│        [Email]    [LinkedIn]    [GitHub]                │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│  © 2024 Abram Stamper    [Switch to Terminal]           │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Mobile (<768px)**:
+```
+┌───────────────────────┐
+│  LOGO           [☰]   │  ← Hamburger menu
+├───────────────────────┤
+│                       │
+│    Abram Stamper      │
+│   Software Engineer   │
+│                       │
+│   [View Resume]       │
+│   [Contact Me]        │
+│                       │
+├───────────────────────┤
+│       ABOUT           │
+│  Bio text stacked     │
+│  vertically...        │
+│                       │
+├───────────────────────┤
+│     EXPERIENCE        │
+│                       │
+│  ●──●──●──●  (horiz)  │  ← Compact timeline
+│                       │
+│  ┌─────────────────┐  │
+│  │ ▼ Company 1     │  │  ← Tap to expand
+│  │   Title         │  │
+│  ├─────────────────┤  │
+│  │ Description...  │  │  ← Expanded content
+│  │ • Achievement   │  │
+│  │ Tech: Go, AWS   │  │
+│  └─────────────────┘  │
+│  ┌─────────────────┐  │
+│  │ ▶ Company 2     │  │  ← Collapsed
+│  │   Title         │  │
+│  └─────────────────┘  │
+│                       │
+├───────────────────────┤
+│       SKILLS          │
+│  [Python] [TS] [Go]   │  ← Tags wrap
+│  [React] [Node]       │
+│                       │
+├───────────────────────┤
+│      PROJECTS         │
+│  ┌─────────────────┐  │
+│  │  Project 1      │  │  ← Full width cards
+│  └─────────────────┘  │
+│  ┌─────────────────┐  │
+│  │  Project 2      │  │
+│  └─────────────────┘  │
+│                       │
+├───────────────────────┤
+│      CONTACT          │
+│  [Email] [LI] [GH]    │
+│                       │
+├───────────────────────┤
+│  © 2024  [Terminal]   │
+└───────────────────────┘
+```
+
+### Mode Detection & Switching
+
+```typescript
+// Detect initial mode
+const getInitialMode = (): 'terminal' | 'nav' => {
+  // Check localStorage first
+  const saved = localStorage.getItem('preferredMode');
+  if (saved) return saved as 'terminal' | 'nav';
+
+  // Default: mobile → nav, desktop → terminal
+  const isMobile = window.innerWidth < 768;
+  return isMobile ? 'nav' : 'terminal';
+};
+
+// Persist preference
+const setMode = (mode: 'terminal' | 'nav') => {
+  localStorage.setItem('preferredMode', mode);
+  // Update state
+};
+```
+
+---
+
+## Command System
+
+### Design Philosophy
+Commands should behave like real Linux/BusyBox utilities where practical. Users familiar with Unix terminals should feel at home. Not every flag needs to be implemented, but common patterns should work as expected.
+
+### Universal Flags (All Commands)
+```
+-h, --help     Show help message with usage and options
+```
+
+### Core Commands
+
+#### help
+Display available commands.
+```bash
+help              # List all commands with descriptions
+help <command>    # Show detailed help for specific command
+```
+
+#### man
+Display manual page for a command (alias for detailed help).
+```bash
+man <command>     # Show detailed help for command
+man ls            # Show ls manual page
+man man           # Show man manual page
+```
+**Behavior**: `man <command>` is equivalent to `<command> --help` but formatted like a manual page with sections (NAME, SYNOPSIS, DESCRIPTION, OPTIONS).
+
+#### ls
+List available sections (like listing files).
+```bash
+ls                # List all sections
+ls -l             # Long format with descriptions
+ls -a             # Include hidden sections (easter eggs)
+ls <section>      # Error if section doesn't exist (sections are files, not directories)
+```
+**Important**: Display sections as files (no `/` suffix). There are no directories to navigate.
+
+#### cat
+Display section contents (primary way to view content).
+```bash
+cat <section>           # Display section content
+cat about experience    # Display multiple sections
+cat -n <section>        # Show with line numbers (optional)
+```
+**Sections**: about, experience, skills, projects, contact, resume
+
+#### cd
+Informational only - no actual directory navigation.
+```bash
+cd                # Print hint: "Use 'cat <section>' to view contents"
+cd <section>      # Same hint, no state change
+```
+**Rationale**: Maintains terminal familiarity without complex state management.
+
+#### pwd
+Print working directory.
+```bash
+pwd               # Output: /home/guest or ~
+```
+
+#### clear
+Clear the terminal screen.
+```bash
+clear             # Clear all output
+# Also: Ctrl+L
+```
+
+#### history
+Show command history.
+```bash
+history           # List previous commands with numbers
+history -c        # Clear history (optional)
+history <n>       # Show last n commands (optional)
+```
+
+#### echo
+Display a message.
+```bash
+echo <message>    # Print message
+echo -n <msg>     # Print without newline (optional)
+echo              # Print empty line
+```
+
+#### whoami
+Display current user.
+```bash
+whoami            # Output: guest
+```
+
+#### hostname
+Display system hostname.
+```bash
+hostname          # Output: abramstamper.com (or current domain)
+```
+**Implementation**: Use `window.location.hostname`
+
+#### id
+Display user identity.
+```bash
+id                # Output: uid=1000(guest) gid=1000(guest) groups=1000(guest)
+```
+**Note**: Username should match whatever `whoami` returns.
+
+#### exit / logout
+Exit the terminal (Rick Roll).
+```bash
+exit              # Redirects to https://youtu.be/dQw4w9WgXcQ
+logout            # Same behavior
+```
+**Implementation**: `window.location.href = 'https://youtu.be/dQw4w9WgXcQ?si=Q1MpJ6ll3cuuVw8E'`
+
+#### date
+Display current date/time.
+```bash
+date              # Current date/time in locale format
+date +%Y-%m-%d    # Custom format (optional, BusyBox style)
+date -u           # UTC time (optional)
+```
+
+#### uname
+System information (repurposed for project info).
+```bash
+uname             # Project name and version
+uname -a          # All info: project, versions, dependencies
+uname -s          # System name (project name)
+uname -r          # Release (version from package.json)
+uname -v          # Version details
+uname -m          # Machine (shows "browser")
+uname -n          # Node/hostname (browser info: UA, viewport, platform)
+```
+
+#### ifconfig
+Display client network information.
+```bash
+ifconfig          # Show public IP address and basic info
+```
+**Implementation**: Requires async fetch to external API. Shows loading state while fetching. Cache result for session.
+
+**API**: Use `https://ifconfig.me/all.json` (CORS confirmed working)
+```typescript
+fetch('https://ifconfig.me/all.json')
+// Returns: { ip_addr, remote_host, user_agent, port, ... }
+```
+
+**Example output**:
+```
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>
+      inet 203.0.113.42
+      origin: San Francisco, CA, US (if using ipinfo.io)
+```
+
+#### uptime
+Show time since site was built/deployed.
+```bash
+uptime            # "up 3 days, 14 hours, 22 minutes (built 2024-01-15 10:30:00)"
+uptime -p         # Pretty format: "up 3 days, 14 hours"
+uptime -s         # Build timestamp: "2024-01-15 10:30:00"
+```
+**Implementation**: Build timestamp is injected at build time via Vite's `define` or an environment variable. Calculate difference from current time.
+
+#### theme
+Manage terminal themes.
+```bash
+theme             # Show current theme name and description
+theme -l          # List all available themes
+theme <name>      # Switch to named theme
+theme -s <name>   # Same as above (set theme)
+```
+
+#### motd
+Message of the day (welcome banner).
+```bash
+motd              # Display ASCII art banner
+```
+
+#### export
+Download resume.
+```bash
+export            # Trigger resume PDF download
+export resume     # Same as above
+```
+
+### Shell Operators
+
+| Operator | Behavior |
+|----------|----------|
+| `&&` | Chain commands, stop on first error |
+| `\|` | Error: "Pipes are not supported in this terminal" |
+| `&` | Error: "Background execution is not supported" |
+| `;` | Optional: chain commands, continue on error |
+
+### Keyboard Shortcuts
+- **Enter**: Execute command
+- **Up/Down**: Navigate command history
+- **Tab**: Autocomplete command, section, or theme name
+- **Ctrl+C**: Clear current input
+- **Ctrl+Z**: Clear current input
+- **Ctrl+L**: Clear screen (same as `clear`)
+
+### Easter Egg Commands (Phase 2)
+```bash
+sudo              # Witty denial message or unlock secret theme
+sl                # ASCII train animation
+cowsay <msg>      # ASCII cow with message (default message is "Linux is great!")
+matrix            # Brief Matrix rain animation (aka cmatrix)
+coffee            # ASCII coffee cup
+neofetch          # System info in stylized format
+fortune           # gives some quotes that I admire
+cal               # ASCII calendar for current month
+```
+
+---
+
+## Theme System
+
+### Critical Requirement: Color Distinctness
+
+**THE MOST IMPORTANT RULE**: Every color in a theme MUST be visually distinct from every other color. This was a major bug in initial implementation where `text`, `success`, and `link` were all the same shade of green.
+
+Think of themes like an IDE color scheme:
+- Keywords are one color
+- Strings are another
+- Comments are muted but visible
+- Errors are clearly red
+- Each syntax element is immediately distinguishable
+
+### Color Roles and Usage
+
+| Color | Purpose | Usage Examples |
+|-------|---------|----------------|
+| `bg` | Background | Terminal background |
+| `text` | Primary text | Command output, general content |
+| `prompt` | Prompts/labels | The `~` in prompt, section headers |
+| `accent` | Secondary highlight | Emphasis, borders |
+| `error` | Error messages | Command not found, invalid args |
+| `success` | Success/commands | The `guest` username, command names in help |
+| `link` | Interactive elements | The `portfolio` hostname, clickable links |
+| `muted` | Subtle elements | The `@`, `:`, `$` separators, comments |
+
+### Prompt Color Mapping
+```
+guest@portfolio:~$
+  │  │    │     │ │
+  │  │    │     │ └─ muted (gray)
+  │  │    │     └─── prompt (amber/orange)
+  │  │    └───────── link (blue)
+  │  └────────────── muted (gray)
+  └───────────────── success (green)
+```
+
+### Theme Definitions
+
+Each theme must have 8 distinct, visually differentiable colors:
+
+#### green (Classic CRT)
+```javascript
+{
+  bg: '#0a0a0a',           // Near black
+  text: '#00ff00',         // Bright green (primary)
+  prompt: '#ffb000',       // Amber (clearly different from green)
+  accent: '#00ffff',       // Cyan
+  error: '#ff4444',        // Red
+  success: '#44ff88',      // Lighter/different green than text
+  link: '#00aaff',         // Blue
+  muted: '#669966',        // Muted green (visible but subtle)
+  effects: { scanlines: true, glow: true }
+}
+```
+
+#### amber
+```javascript
+{
+  bg: '#0a0a0a',
+  text: '#ffb000',         // Amber
+  prompt: '#ff6600',       // Orange (distinct from amber)
+  accent: '#ffdd44',       // Yellow
+  error: '#ff4444',        // Red
+  success: '#88cc44',      // Green (contrasts with amber)
+  link: '#ffcc66',         // Light amber
+  muted: '#997744',        // Muted amber
+  effects: { scanlines: true, glow: true }
+}
+```
+
+#### blue
+```javascript
+{
+  bg: '#0a0a14',
+  text: '#00aaff',         // Blue
+  prompt: '#00ffff',       // Cyan
+  accent: '#88ddff',       // Light blue
+  error: '#ff4466',        // Red
+  success: '#00ff88',      // Green
+  link: '#66ccff',         // Lighter blue
+  muted: '#4477aa',        // Muted blue
+  effects: { scanlines: true, glow: true }
+}
+```
+
+#### matrix
+```javascript
+{
+  bg: '#000000',
+  text: '#00ff41',         // Matrix green
+  prompt: '#88ff88',       // Lighter green
+  accent: '#00ff41',
+  error: '#ff0000',        // Red
+  success: '#33ff77',      // Different green
+  link: '#66ffaa',         // Cyan-green
+  muted: '#338833',        // Dark green
+  effects: { scanlines: false, glow: true }
+}
+```
+
+#### high-contrast (Windows/JetBrains style)
+```javascript
+{
+  bg: '#000000',           // Pure black
+  text: '#ffffff',         // Pure white
+  prompt: '#ffff00',       // Yellow
+  accent: '#00ffff',       // Cyan
+  error: '#ff0000',        // Pure red
+  success: '#00ff00',      // Pure green
+  link: '#00ffff',         // Cyan
+  muted: '#888888',        // Gray
+  effects: { scanlines: false, glow: false }
+}
+```
+
+#### light
+```javascript
+{
+  bg: '#f5f5f5',           // Light gray
+  text: '#1a1a1a',         // Near black
+  prompt: '#0066cc',       // Blue
+  accent: '#cc6600',       // Orange
+  error: '#cc0000',        // Red
+  success: '#008800',      // Green
+  link: '#0066cc',         // Blue
+  muted: '#666666',        // Gray
+  effects: { scanlines: false, glow: false }
+}
+```
+
+#### rainbow
+```javascript
+{
+  bg: '#0f0f1a',
+  text: '#ffffff',         // White
+  prompt: '#ff0000',       // Pure red
+  accent: '#ff8800',       // Orange
+  error: '#ff0055',        // Magenta-red
+  success: '#00ff00',      // Pure green
+  link: '#00aaff',         // Bright blue
+  muted: '#aa00ff',        // Purple/violet
+  effects: { scanlines: false, glow: true }
+}
+```
+
+### Theme Implementation
+
+#### CSS Variables Approach
+Themes work by setting CSS custom properties on the document root:
+
+```typescript
+// ThemeContext.tsx
+useEffect(() => {
+  const theme = themes[themeId];
+  const root = document.documentElement;
+
+  Object.entries(theme.colors).forEach(([key, value]) => {
+    root.style.setProperty(`--color-${key}`, value);
+  });
+}, [themeId]);
+```
+
+#### Tailwind Configuration
+```javascript
+// tailwind.config.js
+colors: {
+  terminal: {
+    bg: 'var(--color-bg)',
+    text: 'var(--color-text)',
+    prompt: 'var(--color-prompt)',
+    accent: 'var(--color-accent)',
+    error: 'var(--color-error)',
+    success: 'var(--color-success)',
+    link: 'var(--color-link)',
+    muted: 'var(--color-muted)',
+  },
+}
+```
+
+#### Theme Registry Pattern
+Command handlers (non-React code) need access to theme functions. Use a registry:
+
+```typescript
+// lib/themeRegistry.ts
+let themeCallback: ((id: string) => void) | null = null;
+let currentThemeId: string = 'green';
+
+export function registerThemeCallback(callback: (id: string) => void, initialId: string) {
+  themeCallback = callback;
+  currentThemeId = initialId;
+}
+
+export function setTheme(id: string) {
+  themeCallback?.(id);
+  currentThemeId = id;
+}
+
+export function getCurrentThemeId(): string {
+  return currentThemeId;
+}
+```
 
 ---
 
 ## Content Structure
 
-### Main Sections
-1. **About**: Photo, bio, current role, interests
-2. **Experience**: Work history with W2 job highlighted
-3. **Timeline**: Visual timeline of career with accomplishment nodes (separate from resume)
-4. **Projects**: Personal projects with descriptions, tech stack, links
-5. **Skills**: Technologies organized by category (languages, frameworks, tools, specialties)
-6. **Resume**: Downloadable PDF + inline view option
-7. **Contact**: Email, GitHub, LinkedIn, other links
+### Sections
+1. **about**: Bio, interests, personal statement
+2. **experience**: Work history (role, company, period, description, highlights)
+3. **skills**: Technologies grouped by category
+4. **projects**: Personal/open source projects (can show "coming soon")
+5. **contact**: Email, GitHub, LinkedIn with clickable links
+6. **resume**: Download link, last updated date
 
-### SMB Business Considerations
-- You run a B2B IT consulting business (local small businesses)
-- **No conflict** with W2 job
-- **Risk concern**: Don't want to link SMB website initially
-- **Future option**: Architecture supports linking when comfortable
-- **Implementation**: Feature flag to hide/show SMB content
-
----
-
-## Configuration Architecture
-
-### Main Config Structure (`src/config/content.ts`)
-
-```typescript
-export interface SiteConfig {
-  personal: PersonalInfo;
-  experience: Experience[];
-  timeline: TimelineNode[];
-  projects: Project[];
-  skills: SkillsConfig;
-  resume: ResumeConfig;
-  social: SocialLinks;
-  seo: SEOConfig;
-  features: FeatureFlags;
-}
-
-interface PersonalInfo {
-  name: string;
-  title: string;
-  tagline: string;
-  photo: {
-    url: string;          // "/assets/photo.jpg"
-    alt: string;
-  };
-  location: string;       // "City, State" (optional, for SEO)
-  bio: string[];          // Array of paragraphs
-  interests: string[];
-  pronouns?: string;
-}
-
-interface Experience {
-  id: string;
-  company: string;
-  role: string;
-  type: 'w2' | 'contract' | 'smb';  // Future: can filter out 'smb'
-  period: {
-    start: string;        // "2020-01" (YYYY-MM format for sorting)
-    end: string | 'present';
-  };
-  displayPeriod: string;  // "Jan 2020 - Present"
-  location?: string;
-  description: string[];  // Bullet points
-  technologies: string[];
-  accomplishments: string[];
-  link?: string;          // Future: SMB website link (optional)
-  hidden?: boolean;       // Future: hide SMB entry
-}
-
-interface TimelineNode {
-  id: string;
-  date: string;           // "2023-06" for sorting
-  displayDate: string;    // "June 2023"
-  title: string;
-  category: 'career' | 'education' | 'achievement' | 'certification';
-  company?: string;
-  description: string;
-  icon?: string;          // emoji or icon identifier
-  link?: string;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  tagline: string;
-  description: string[];
-  tech: string[];
-  features?: string[];
-  link?: string;
-  github?: string;
-  image?: string;
-  status: 'active' | 'archived' | 'in-progress';
-  year: string;
-  hidden?: boolean;       // For SMB projects if needed
-}
-
-interface SkillsConfig {
-  languages: SkillCategory;
-  frameworks: SkillCategory;
-  tools: SkillCategory;
-  specialties: SkillCategory;
-}
-
-interface SkillCategory {
-  title: string;
-  items: Skill[];
-}
-
-interface Skill {
-  name: string;
-  level?: 'expert' | 'proficient' | 'familiar';
-  years?: number;
-  icon?: string;
-}
-
-interface ResumeConfig {
-  pdfUrl: string;         // "/assets/resume.pdf"
-  lastUpdated: string;    // "2024-12-15"
-  filename: string;       // "Abram_Stamper_Resume.pdf"
-  versions?: {            // Future: multiple resume versions
-    [key: string]: string;
-  };
-}
-
-interface SocialLinks {
-  email: string;
-  github?: string;
-  linkedin?: string;
-  twitter?: string;
-  portfolio?: string;     // Future: SMB website
-  other?: {
-    name: string;
-    url: string;
-    icon?: string;
-  }[];
-}
-
-interface SEOConfig {
-  title: string;          // "Abram Stamper - Senior Software Engineer"
-  description: string;
-  keywords: string[];
-  ogImage: string;        // "/assets/og-image.jpg"
-  twitterHandle?: string;
-  canonicalUrl: string;   // "https://abramstamper.com"
-}
-
-interface FeatureFlags {
-  showTimeline: boolean;
-  showProjects: boolean;
-  showBlog: boolean;      // Future
-  showSMBLink: boolean;   // Future: toggle SMB website link
-  enableAnalytics: boolean;
-}
+### Content Configuration
+All content lives in a single config file for easy updates:
 ```
-
-### Theme Configuration (`src/config/themes.ts`)
-
-```typescript
-export interface Theme {
-  id: string;
-  name: string;
-  displayName: string;
-  description: string;
-  colors: {
-    bg: string;
-    text: string;
-    prompt: string;
-    accent: string;
-    error: string;
-    success: string;
-    link: string;
-  };
-  effects: {
-    scanlines: boolean;
-    glow: boolean;
-    glowIntensity?: number;     // 0-1
-    cursorBlink: 'fast' | 'slow' | 'none';
-    cursorStyle: 'block' | 'underline' | 'bar';
-    textShadow: boolean;
-  };
-  font: {
-    family: string;
-    size: string;
-    lineHeight: string;
-  };
-  accessibility: {
-    contrastRatio: number;      // WCAG compliance level
-    reducedMotion: boolean;
-  };
-}
+src/config/data/site-data.ts   # Actual content
+src/config/content.ts          # Type definitions
 ```
-
-### Available Themes
-1. **Green (Classic CRT)** - `#00ff00` on black, scanlines, phosphor glow (default)
-2. **Amber** - `#ffb000` on black, warm retro feel
-3. **Black & White (Modern)** - `#ffffff` on `#1e1e1e`, no scanlines, sharp LCD aesthetic
-4. **Blue** - `#00aaff` on dark blue, cool hacker vibe
-5. **High Contrast** - WCAG AAA compliant, accessibility-first
-6. **Pride/Rainbow** - Animated gradient text, playful and inclusive
-7. **Matrix** - Green rain effect on black (subtle background animation)
-
-**Theme-Effect Relationship**:
-- Green theme → scanlines (emblematic of CRT monitors)
-- Black & White → no scanlines (modern LCD panels)
-- High Contrast → minimal effects, max readability
-- User can override in settings
 
 ---
 
 ## Directory Structure
 
 ```
-portfolio-terminal/
+terminal-portfolio/
 ├── public/
-│   ├── assets/
-│   │   ├── photo.jpg              # Personal photo
-│   │   ├── resume.pdf             # Resume PDF
-│   │   └── og-image.jpg           # Social media preview image
-│   ├── robots.txt
-│   └── sitemap.xml
+│   └── assets/
+│       └── resume.pdf
 ├── src/
 │   ├── components/
-│   │   ├── terminal/
-│   │   │   ├── Terminal.tsx
-│   │   │   ├── TerminalOutput.tsx
-│   │   │   ├── TerminalInput.tsx
-│   │   │   ├── TerminalPrompt.tsx
-│   │   │   ├── CommandParser.tsx
-│   │   │   └── ascii/
-│   │   │       ├── Banner.tsx
-│   │   │       ├── Train.tsx       # sl command
-│   │   │       ├── Cowsay.tsx
-│   │   │       ├── Matrix.tsx
-│   │   │       ├── Pong.tsx
-│   │   │       └── Snake.tsx
-│   │   ├── nav/
-│   │   │   ├── Navigation.tsx
-│   │   │   ├── Hero.tsx
-│   │   │   ├── About.tsx
-│   │   │   ├── Experience.tsx
-│   │   │   ├── Timeline.tsx
-│   │   │   ├── Projects.tsx
-│   │   │   ├── Skills.tsx
-│   │   │   └── Contact.tsx
-│   │   ├── shared/
-│   │   │   ├── ThemeProvider.tsx
-│   │   │   ├── ModeToggle.tsx
-│   │   │   ├── SEO.tsx
-│   │   │   └── Analytics.tsx
-│   │   └── layout/
-│   │       ├── Layout.tsx
-│   │       └── Footer.tsx
+│   │   └── terminal/
+│   │       ├── Terminal.tsx          # Main container, handles submit
+│   │       ├── TerminalInput.tsx     # Input with cursor, prompt
+│   │       ├── TerminalOutput.tsx    # Renders output lines
+│   │       └── index.ts
+│   ├── config/
+│   │   ├── content.ts                # Type definitions
+│   │   ├── themes.ts                 # Theme configurations
+│   │   ├── version.ts                # Package version for uname
+│   │   └── data/
+│   │       └── site-data.ts          # Actual content
+│   ├── contexts/
+│   │   └── ThemeContext.tsx          # Theme provider
 │   ├── hooks/
-│   │   ├── useTerminal.ts
-│   │   ├── useTheme.ts
-│   │   ├── useKeyboard.ts
-│   │   ├── useLocalStorage.ts
-│   │   └── useAnalytics.ts
+│   │   └── useTerminal.ts            # Terminal state (reducer pattern)
 │   ├── lib/
 │   │   ├── commands/
-│   │   │   ├── parser.ts
-│   │   │   ├── handlers.ts
-│   │   │   ├── autocomplete.ts
-│   │   │   └── easter-eggs.ts
-│   │   ├── themes.ts
-│   │   ├── utils.ts
-│   │   └── analytics.ts
-│   ├── config/
-│   │   ├── content.ts              # Type definitions
-│   │   ├── themes.ts               # Theme configurations
-│   │   └── data/
-│   │       └── site-data.ts        # Actual content data
-│   ├── styles/
-│   │   ├── globals.css
-│   │   ├── terminal-effects.css    # Scanlines, glow, CRT effects
-│   │   └── themes.css
+│   │   │   ├── autocomplete.ts       # Tab completion
+│   │   │   ├── handlers.tsx          # Command implementations
+│   │   │   ├── handlers.test.tsx     # Handler tests
+│   │   │   ├── parser.ts             # Command parsing
+│   │   │   └── parser.test.ts        # Parser tests
+│   │   └── themeRegistry.ts          # React/command bridge
 │   ├── types/
-│   │   ├── config.ts
-│   │   ├── commands.ts
-│   │   └── theme.ts
+│   │   └── terminal.ts               # Types
 │   ├── App.tsx
-│   ├── main.tsx
-│   └── vite-env.d.ts
-├── tests/
-│   ├── unit/
-│   │   ├── commands.test.ts
-│   │   ├── parser.test.ts
-│   │   ├── autocomplete.test.ts
-│   │   └── utils.test.ts
-│   ├── integration/
-│   │   └── terminal-flow.test.tsx
-│   └── e2e/                        # Optional
-│       └── navigation.spec.ts
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                  # Lint, test, build
-│       └── deploy.yml              # Deploy to Apache
+│   ├── index.css                     # Tailwind + custom styles
+│   └── main.tsx
 ├── index.html
+├── tailwind.config.js
 ├── vite.config.ts
 ├── vitest.config.ts
-├── tailwind.config.js
 ├── tsconfig.json
-├── package.json
-└── README.md
+└── package.json
 ```
+
+---
+
+## Critical Implementation Notes
+
+### Pitfall #1: Tailwind @apply with CSS Variables
+**PROBLEM**: `@apply` does not work with CSS variable-based colors.
+
+```css
+/* THIS WILL FAIL */
+.cursor {
+  @apply bg-terminal-text;  /* Error: cannot apply dynamic value */
+}
+
+/* DO THIS INSTEAD */
+.cursor {
+  background-color: var(--color-text);
+}
+```
+
+**Rule**: Use Tailwind utility classes in JSX (`className="text-terminal-prompt"`), but use raw CSS variables in `@layer` definitions.
+
+### Pitfall #2: Stale Closures in Theme Registry
+**PROBLEM**: Theme callback becomes stale if not memoized.
+
+```typescript
+// BAD - creates new function on every render
+const setTheme = (id: string) => {
+  if (themes[id]) setThemeId(id);
+};
+
+// GOOD - stable reference
+const setTheme = useCallback((id: string) => {
+  if (themes[id]) setThemeId(id);
+}, []);
+```
+
+### Pitfall #3: Monochrome Themes with Same Colors
+**PROBLEM**: In a "green" theme, making `text`, `success`, and `link` all `#00ff00` means the prompt looks broken.
+
+**SOLUTION**: Even monochrome themes need color variation:
+- Use different shades (lighter/darker)
+- Use complementary colors for accents (amber in green theme)
+- Test by visually checking that every prompt element is distinguishable
+
+### Pitfall #4: Sections Are Files, Not Directories
+**PROBLEM**: `ls` showing `about/` implies you can `cd about`.
+
+**SOLUTION**:
+- `ls` shows sections without trailing `/`
+- `cd` always prints a hint to use `cat`
+- No directory state management needed
+
+### Async Commands (ifconfig, etc.)
+Some commands need to fetch external data. Handle this by:
+
+1. **Return a loading state immediately**:
+```typescript
+// Handler returns promise or signals async
+handler: async (args) => {
+  return { output: 'Fetching...', async: true };
+}
+```
+
+2. **Update output when data arrives**:
+```typescript
+// Option A: Command returns a Promise<CommandResult>
+// Option B: Command accepts a callback to update output
+// Option C: Use React state with useEffect in the output component
+```
+
+3. **Cache results** to avoid repeated API calls:
+```typescript
+let cachedIP: string | null = null;
+// Reuse for session
+```
+
+4. **Handle errors gracefully**:
+```
+ifconfig: unable to fetch network information
+```
+
+### Build-Time Constants (for uptime command)
+Inject the build timestamp at build time via Vite config:
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
+});
+
+// src/vite-env.d.ts (type declaration)
+declare const __BUILD_TIME__: string;
+
+// Usage in uptime handler
+const buildTime = new Date(__BUILD_TIME__);
+const now = new Date();
+const diff = now.getTime() - buildTime.getTime();
+// Convert diff to days, hours, minutes
+```
+
+---
+
+## Accessibility
+
+### ARIA Implementation
+```jsx
+<div role="application" aria-label="Terminal">
+  <div role="log" aria-live="polite">
+    {/* Output lines */}
+  </div>
+  <input aria-label="Terminal input" />
+</div>
+```
+
+### Features
+- `role="log"` for output area with `aria-live="polite"`
+- Skip link to bypass terminal
+- Keyboard-only navigation fully supported
+- `prefers-reduced-motion` respected (disable animations)
+- High contrast theme available
 
 ---
 
 ## Testing Strategy
 
-### Coverage Goals
-- **Command logic**: 100%
-- **Components**: 80%+
-- **Overall**: 80%+
+### Test Categories
+1. **Parser tests**: Command parsing, argument handling, operators
+2. **Handler tests**: Each command with various inputs
+3. **Integration tests**: Full terminal interaction flows
 
-### Unit Tests (Vitest)
-Test business logic:
-- Command parser logic
-- Autocomplete algorithm
-- Theme switching
-- localStorage persistence
-- All command handlers
-
-Example:
+### Example Test Cases
 ```typescript
-// tests/unit/parser.test.ts
-describe('Command Parser', () => {
-  test('parses simple command', () => {
-    expect(parseCommand('help')).toEqual({ cmd: 'help', args: [] });
-  });
-  
-  test('parses command with arguments', () => {
-    expect(parseCommand('cat about')).toEqual({ 
-      cmd: 'cat', 
-      args: ['about'] 
-    });
-  });
-  
-  test('handles unknown commands', () => {
-    expect(parseCommand('invalid')).toEqual({ 
-      cmd: 'invalid', 
-      args: [],
-      error: 'Command not found' 
-    });
-  });
-});
+// Parser
+- parseCommand('ls -l') → { command: 'ls', args: ['-l'] }
+- parseCommand('cat about experience') → { command: 'cat', args: ['about', 'experience'] }
+- parseCommand('echo hello && clear') → [cmd1, cmd2] (chained)
+- parseCommand('ls | grep') → error result
+
+// Handlers
+- help() → lists all commands
+- man('ls') → shows ls manual page with NAME, SYNOPSIS, etc.
+- man() → error: "What manual page do you want?"
+- ls() → lists sections without /
+- ls('invalid') → error message
+- cat('about') → about content
+- theme() → current theme info
+- theme('-l') → theme list
+- uname('-a') → full system info
+- uptime() → shows time since build
+- uptime('-s') → shows build timestamp
 ```
-
-### Component Tests (React Testing Library)
-Test user interactions:
-- Terminal input/output
-- Navigation components
-- Theme provider
-- Mode toggle
-
-Example:
-```typescript
-// tests/integration/terminal-flow.test.tsx
-describe('Terminal Flow', () => {
-  test('displays help on help command', async () => {
-    render(<Terminal />);
-    const input = screen.getByRole('textbox');
-    
-    await userEvent.type(input, 'help{enter}');
-    
-    expect(screen.getByText(/available commands/i)).toBeInTheDocument();
-  });
-  
-  test('switches themes', async () => {
-    render(<Terminal />);
-    const input = screen.getByRole('textbox');
-    
-    await userEvent.type(input, 'theme amber{enter}');
-    
-    expect(screen.getByTestId('terminal')).toHaveClass('theme-amber');
-  });
-});
-```
-
-### E2E Tests (Optional - Playwright)
-Test full user journeys:
-- Terminal → nav → back
-- Command sequences
-- Theme switching persistence
-- Mobile responsive behavior
 
 ---
 
-## CI/CD Pipeline
+## Development Phases
 
-### GitHub Actions CI (`.github/workflows/ci.yml`)
-```yaml
-name: CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run type-check
-      - run: npm run test:coverage
-      - uses: codecov/codecov-action@v3
-  
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-artifact@v3
-        with:
-          name: dist
-          path: dist/
-```
+### Phase 1: Core Terminal
+- [ ] Project setup (Vite, React, TypeScript, Tailwind)
+- [ ] Terminal components (Terminal, Input, Output)
+- [ ] Command parser with operator support
+- [ ] All core commands with Linux-style args
+- [ ] Theme system with 7 themes
+- [ ] Tab completion
+- [ ] Command history
+- [ ] Unit tests
 
-### GitHub Actions CD (`.github/workflows/deploy.yml`)
-```yaml
-name: Deploy
-on:
-  push:
-    branches: [main]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm ci
-      - run: npm run build
-      
-      # Option 1: Deploy via SCP
-      - name: Deploy to Apache
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "dist/*"
-          target: "/var/www/html"
-          strip_components: 1
-      
-      # Option 2: Deploy via rsync (more efficient)
-      - name: Deploy via rsync
-        run: |
-          rsync -avz --delete dist/ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/var/www/html/
-```
+### Phase 2: Polish & Easter Eggs
+- [ ] ASCII art banner (motd)
+- [ ] Easter egg commands (sudo, sl, cowsay, etc.)
+- [ ] Scanline and glow effects
+- [ ] Sound effects (optional, respect preferences)
 
-**Secrets to configure in GitHub**:
-- `HOST`: Apache server hostname/IP
-- `USERNAME`: SSH username
-- `SSH_KEY`: Private SSH key for authentication
+### Phase 3: Navigation Mode
+- [ ] Nav mode components
+- [ ] Mode toggle
+- [ ] Mobile-first responsive
+- [ ] Auto-detect mobile → nav mode
+
+### Phase 4: SEO & Performance
+- [ ] SSG pre-rendering
+- [ ] Meta tags, Open Graph
+- [ ] Sitemap, robots.txt
+- [ ] Lighthouse optimization
+- [ ] Code splitting for games
+
+### Phase 5: CI/CD
+- [ ] GitHub Actions CI
+- [ ] GitHub Actions CD to Apache
+- [ ] Production deployment
 
 ---
 
-## Accessibility & SEO
+## Quick Reference
 
-### ARIA Compliance
-
-#### Terminal Mode
-- `role="log"` for output area (announces new content to screen readers)
-- `aria-live="polite"` for command results
-- `aria-label` for all interactive elements
-- Keyboard trap handled properly (Esc to exit terminal focus)
-- Focus management for mode switching
-- Skip link to bypass terminal interface
-
-#### Nav Mode
-- Semantic HTML (`<nav>`, `<main>`, `<article>`, `<section>`)
-- Skip links ("Skip to content")
-- Proper heading hierarchy (h1 → h2 → h3)
-- Alt text for photo and images
-- ARIA labels for icon-only buttons
-- Form labels for input fields
-
-### Accessibility Features
-- **Reduced motion**: Respect `prefers-reduced-motion` CSS media query
-- **High contrast mode**: Detect system preference + manual theme override
-- **Configurable animations**: Store preference in localStorage (no UI toggle needed)
-- **Screen reader**: All content readable in both terminal and nav modes
-- **Keyboard navigation**: Full site usable without mouse
-- **Focus indicators**: Clear visual focus states
-- **Color contrast**: WCAG AA minimum (AAA for high contrast theme)
-
-### SEO Strategy
-
-#### Pre-rendering
-- Use vite-plugin-ssr or vite-ssg
-- Generate static HTML for all routes at build time
-- Search engines see full content immediately
-- Client-side hydration after initial load
-
-#### Meta Tags
-```html
-<title>Abram Stamper - Senior Software Engineer</title>
-<meta name="description" content="Senior Software Engineer specializing in full-stack development..." />
-<meta name="keywords" content="Software Engineer, React, Node.js, Python, TypeScript..." />
-
-<!-- Open Graph -->
-<meta property="og:title" content="Abram Stamper - Senior Software Engineer" />
-<meta property="og:description" content="..." />
-<meta property="og:image" content="https://abramstamper.com/assets/og-image.jpg" />
-<meta property="og:url" content="https://abramstamper.com" />
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="..." />
-<meta name="twitter:description" content="..." />
-<meta name="twitter:image" content="..." />
+### Commands
+```bash
+npm run dev          # Start dev server
+npm run build        # Build for production
+npm run lint         # Run ESLint
+npm run test         # Run tests in watch mode
+npm run test:run     # Run tests once
 ```
 
-#### Structured Data (JSON-LD)
-```json
-{
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Abram Stamper",
-  "jobTitle": "Senior Software Engineer",
-  "url": "https://abramstamper.com",
-  "sameAs": [
-    "https://github.com/...",
-    "https://linkedin.com/in/..."
-  ]
-}
-```
+### Testing Theme Colors
+After implementing themes, verify by:
+1. Switch to each theme
+2. Type a command and check prompt: guest (success), @ (:) muted, portfolio (link), ~ (prompt), $ (muted)
+3. Run `help` - command names should be different from descriptions
+4. Run an invalid command - error should be clearly red
+5. Every element should be visually distinct
 
-#### Technical SEO
-- Semantic HTML throughout
-- Internal linking strategy
-- Sitemap.xml (auto-generated)
-- Robots.txt
-- Canonical URLs
-- Fast page load (<3s)
-- Mobile-first responsive design
-- Image optimization (WebP with fallbacks)
-- Lazy loading for non-critical images
-
-### Performance Targets
-- **Lighthouse Performance**: >90
-- **Lighthouse Accessibility**: 100
-- **Lighthouse SEO**: 100
-- **Lighthouse Best Practices**: >90
-- **Bundle size**: <200kb gzipped
-- **First Contentful Paint**: <1.5s
-- **Time to Interactive**: <3s
-
----
-
-## Responsive Design
-
-### Breakpoints
-- **Mobile**: <640px
-  - Default to nav mode (terminal available via toggle)
-  - Simplified ASCII art (or hide completely)
-  - Stack layout for all content
-  - Touch-optimized buttons (min 44x44px)
-  - Larger font sizes
-  
-- **Tablet**: 640-1024px
-  - Both modes fully functional
-  - Terminal side-by-side with toggle option
-  - Two-column layouts where appropriate
-  
-- **Desktop**: >1024px
-  - Default terminal mode
-  - Full ASCII art and effects
-  - CRT effects at full quality
-  - Multi-column layouts
-
-### Mobile Considerations
-- Virtual keyboard handling for terminal input
-- Prevent zoom on input focus (`font-size: 16px` minimum)
-- Swipe gestures for navigation (optional enhancement)
-- Reduced scanline effects for better mobile performance
-- Touch-friendly command suggestions
-- Landscape orientation support
-
----
-
-## Performance Optimizations
-
-### Code Splitting
-```typescript
-// Lazy load games and heavy ASCII art
-const Pong = lazy(() => import('./components/terminal/ascii/Pong'));
-const Snake = lazy(() => import('./components/terminal/ascii/Snake'));
-const Matrix = lazy(() => import('./components/terminal/ascii/Matrix'));
-```
-
-### Image Optimization
-- Use WebP format with JPEG/PNG fallbacks
-- Provide srcset for responsive images
-- Lazy load below-the-fold images
-- Compress all images
-- Use appropriate dimensions
-
-### Font Loading
-- Subset monospace fonts (only characters needed)
-- Use `font-display: swap` for better perceived performance
-- Preload critical fonts
-
-### CSS Optimization
-- Tailwind CSS purging (remove unused styles)
-- Critical CSS inlining (above-the-fold styles)
-- Minimize custom CSS
-
-### Bundle Optimization
-- Tree-shaking (Vite handles automatically)
-- Code splitting by route
-- Lazy load non-critical components
-- Use production builds
-
----
-
-## Easter Egg Details
-
-### `whoami` Command
-Output a personal poem/statement. Options:
-
-**Option 1 (Poem)**:
-```
-A builder of systems, a solver of puzzles,
-A senior engineer where code often tussles.
-In Node, Python, React, I make my mark,
-Turning coffee and keystrokes into digital art.
-```
-
-**Option 2 (Profound)**:
-```
-Just a person who teaches sand to think.
-```
-
-**Option 3 (Technical)**:
-```
-username: abram
-groups: software-engineer, coffee-addict, terminal-enthusiast
-shell: /bin/zsh
-status: perpetually learning
-```
-
-### `sudo` Command
-Several behavior options:
-
-**Option 1: Playful Denial**
-```
-> sudo make-me-a-sandwich
-[sudo] password for guest: 
-Sorry, you don't have sudo privileges on this server.
-But I can show you my sandwich-making blog post instead?
-```
-
-**Option 2: Unlock Secret Theme**
-```
-> sudo theme unlock
-[sudo] password for guest: *****
-Unlocked: 'synthwave' theme
-Try: theme synthwave
-```
-
-**Option 3: Show "Root" Content**
-```
-> sudo cat secrets
-Access granted.
-Favorite debugging technique: console.log('here')
-Tabs vs Spaces: [your preference]
-Most embarrassing bug: [short funny story]
-```
-
-### ASCII Art Commands
-- **`sl`**: Classic "Steam Locomotive" that chugs across screen (typo of `ls`)
-- **`cowsay <text>`**: ASCII cow says your text in speech bubble
-- **`coffee`**: ASCII coffee cup + inspirational coding quote
-- **`matrix`**: Brief matrix rain effect overlay
-
-### Simple Games
-- **`pong`**: Two-player ASCII pong (WASD vs Arrow keys)
-- **`snake`**: Classic snake game in terminal
-- Both games should be skippable (Esc key)
-- Display high scores in localStorage
-
----
-
-## SMB Website Integration (Future)
-
-### Current State
-- You run a B2B IT consulting business
-- Don't want to link SMB website initially (professional separation concern)
-- Architecture should support linking in future
-
-### Implementation Plan
-When ready to add SMB link:
-
-1. **Update feature flag**:
-```typescript
-features: {
-  showSMBLink: true,  // Enable SMB content
-}
-```
-
-2. **Add SMB link**:
-```typescript
-social: {
-  portfolio: "https://yoursmb.com",  // Add link
-}
-```
-
-3. **Optional: Filter experience** (if SMB work is in experience list):
-```typescript
-const displayExperience = config.experience.filter(exp => 
-  !exp.hidden || features.showSMBLink
-);
-```
-
-4. **Optional: Add dedicated SMB section**:
-- New section in nav mode
-- Terminal command: `cat business`
-- Brief description with external link
-
-### Architecture Support
-- `type: 'smb'` field in Experience interface
-- `hidden: boolean` field in Experience/Project interfaces
-- Feature flag: `showSMBLink: boolean`
-- All handled via config, no code changes needed
-
----
-
-## Open Questions & Decisions Needed
-
-### Content Population
-- Need to extract data from current website source code
-- Need resume PDF for `/public/assets/`
-- Need personal photo for `/public/assets/`
-- Decide on `whoami` poem/message
-- Decide on `sudo` command behavior
-
-### Design Decisions
-- Finalize theme color schemes (7 themes planned)
-- Choose monospace font (Fira Code, JetBrains Mono, Source Code Pro?)
-- ASCII art for welcome banner
-- Command prompt style (`user@host:~$` or simpler?)
-
-### Command Behavior
-- How sophisticated should autocomplete be?
-- Should games save high scores?
-- Additional easter eggs beyond current list?
-- Error messages tone (technical vs playful?)
-
-### Technical Decisions
-- Specific SSG plugin (vite-plugin-ssr vs vite-ssg)?
-- Image format preferences (WebP + fallback)?
-- Font loading strategy (self-host vs CDN)?
-
----
-
-## Next Steps
-
-### Phase 1: Setup & Content
-1. Extract content from existing website source code
-2. Get resume PDF and personal photo
-3. Populate `src/config/data/site-data.ts` with real data
-4. Finalize theme color schemes
-5. Write `whoami` poem and decide on `sudo` behavior
-
-### Phase 2: Core Implementation
-1. Initialize Vite + React + TypeScript project
-2. Set up Tailwind CSS
-3. Implement theme system
-4. Build terminal components
-5. Implement command parser and handlers
-6. Build nav mode components
-7. Implement mode toggle
-
-### Phase 3: Features & Polish
-1. Add all easter egg commands
-2. Implement ASCII art and games
-3. Add animations and effects (scanlines, glow)
-4. Implement autocomplete
-5. Add keyboard navigation
-
-### Phase 4: Optimization
-1. Set up testing (unit + component)
-2. Achieve >80% test coverage
-3. Implement SSG for SEO
-4. Optimize performance (code splitting, lazy loading)
-5. Lighthouse audit and optimization
-
-### Phase 5: Deployment
-1. Set up GitHub Actions CI/CD
-2. Configure Apache deployment
-3. Test deployment pipeline
-4. Deploy to production
-5. Submit sitemap to Google Search Console
-
----
-
-## Resources & References
-
-### Documentation
-- Vite: https://vitejs.dev/
-- React: https://react.dev/
-- Tailwind CSS: https://tailwindcss.com/
-- Vitest: https://vitest.dev/
-- React Testing Library: https://testing-library.com/react
-
-### Inspiration
-- Terminal portfolio sites (for reference)
-- Classic Unix/Linux command aesthetics
-- Retro CRT monitor effects
-
-### Tools
-- Lighthouse (performance auditing)
-- Chrome DevTools (debugging)
-- React DevTools (component debugging)
-- GitHub Actions (CI/CD)
-
----
-
-## Project Values & Principles
-
-### Code Quality
-- TypeScript for type safety
-- Unit tests for business logic
-- Component tests for UI
-- Linting and formatting (ESLint + Prettier)
-- Code reviews via PRs
-
-### User Experience
-- Fast, responsive, accessible
-- Works without JavaScript (nav mode pre-rendered)
-- Mobile-first design
-- Clear error messages
-- Intuitive navigation
-
-### Professional Presentation
-- Clean, modern design
-- Shows technical skills
-- Demonstrates attention to detail
-- Balance professionalism with personality
-- SEO optimized for discoverability
-
----
-
-## Summary
-
-This is a comprehensive portfolio website project that showcases both technical skills and personality through:
-- **Dual interface**: Terminal mode (primary) + Nav mode (fallback)
-- **Modern stack**: Vite + React + TypeScript + Tailwind
-- **SEO optimized**: Pre-rendered static site generation
-- **Fully accessible**: WCAG compliant, screen reader friendly
-- **Well tested**: >80% code coverage with Vitest
-- **CI/CD ready**: GitHub Actions for automated deployment
-- **Future-proof**: Architecture supports SMB link when ready
-
-The terminal interface demonstrates technical knowledge while providing a unique, memorable experience. The traditional nav mode ensures accessibility and usability for all users.
+### Adding a New Command
+1. Add to `commands` object in `handlers.tsx`
+2. Include `name`, `description`, `usage`, `options`, `handler`
+3. Handler receives `(args: string[], history?: string[])`
+4. Return `{ output: ReactNode } | { error: string }`
+5. Check `hasHelpFlag(args)` first and return help if true
+6. Add to autocomplete if needed
+7. Write tests
