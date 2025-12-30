@@ -15,7 +15,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     highlights: [
       'Product-obsessed engineer who ships customer-focused solutions',
       'Force multiplier through mentorship and elevating team performance',
-      'Radical ownership mentality with a bias for action',
+      'Accountable leader who owns outcomes and delivers results',
     ],
   },
 
