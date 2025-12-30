@@ -54,4 +54,5 @@ export interface SiteContent {
     url: string
     lastUpdated: string
   }
+  heroTypingPhrases: string[]
 }

@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react'
 import { siteData } from '../../config/data/site-data'
 
-const TYPING_PHRASES = [
-  'const engineer = "Full Stack";',
-  'ship(customerFocusedSolutions);',
-  'while(true) { learn(); build(); }',
-  'elevateTeam(mentorship);',
-  'deploy(productionReady);',
-  '// Principal Engineer @ PANW',
-]
-
 const TYPING_SPEED = 50
 const DELETE_SPEED = 30
 const PAUSE_DURATION = 2000
@@ -20,7 +11,7 @@ export function Hero() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
-    const currentPhrase = TYPING_PHRASES[phraseIndex]
+    const currentPhrase = siteData.heroTypingPhrases[phraseIndex]
 
     const timeout = setTimeout(() => {
       if (!isDeleting) {
@@ -37,7 +28,7 @@ export function Hero() {
           setDisplayText(displayText.slice(0, -1))
         } else {
           setIsDeleting(false)
-          setPhraseIndex((prev) => (prev + 1) % TYPING_PHRASES.length)
+          setPhraseIndex((prev) => (prev + 1) % siteData.heroTypingPhrases.length)
         }
       }
     }, isDeleting ? DELETE_SPEED : TYPING_SPEED)

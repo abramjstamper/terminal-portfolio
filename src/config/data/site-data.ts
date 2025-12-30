@@ -207,4 +207,13 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     url: '/assets/resume.pdf',
     lastUpdated: '2026',
   },
+
+  heroTypingPhrases: [
+    'const engineer = "Full Stack";',
+    'ship(customerFocusedSolutions);',
+    'while(true) { learn(); build(); }',
+    'elevateTeam(mentorship);',
+    'deploy(productionReady);',
+    '// Principal Engineer @ PANW',
+  ],
 }
