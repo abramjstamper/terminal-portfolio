@@ -2,7 +2,7 @@ import type { SiteContent } from '../content'
 
 export const siteData: SiteContent = {
   name: 'Abram Stamper',
-  title: 'Sr Full Stack Software Engineer',
+  title: 'Principal Full Stack Engineer',
   hostname: 'abramstamper.com',
   username: 'guest',
 
@@ -11,7 +11,7 @@ export const siteData: SiteContent = {
 
 A generalist by nature with production experience in a variety of domains: Advertising, Automotive, Cybersecurity, & IoT. I exhibit a passion for the craft of software development utilizing technical skills in Cloud PaaS/IaaS Components, Single Page Applications (SPA), REST APIs, and Databases.
 
-I operate as a force multiplier by elevating & assisting others to create a positive impact on overall team performance. Strong customer-centric problem-solving skills with seven years of product development experience.`,
+I operate as a force multiplier by elevating & assisting others to create a positive impact on overall team performance. Strong customer-centric problem-solving skills with over a decade of product development experience.`,
     highlights: [
       'Full-stack development across cloud, backend, and frontend',
       'Patent holder: Electronic Device Intrusion Detection (US11341238B2)',
@@ -205,6 +205,6 @@ I operate as a force multiplier by elevating & assisting others to create a posi
 
   resume: {
     url: '/assets/resume.pdf',
-    lastUpdated: '2024',
+    lastUpdated: '2026',
   },
 }
