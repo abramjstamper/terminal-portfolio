@@ -13,11 +13,11 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 - **Future**: Architecture supports linking to SMB website (B2B IT consulting) without implementing initially
 
 ### Current Website
-- Domain: abramstamper.com (and other domains pointing to same content)
-- Current stack: React + TypeScript + Bulma CSS + Apache
-- Deployment: Manual copy to Apache `/var/www/html`
-- Status: Dated, from previous job, hand-assembled
-- Issues: Pure client-side React SPA (SEO challenges), no pre-rendering
+- Domain: abramstamper.dev (primary), with redirects from other domains
+- Current stack: React 19 + TypeScript 5.x + Tailwind CSS 4.x + Vite
+- Deployment: GitHub Actions → GitHub Pages (automatic on push to main)
+- Status: Complete terminal portfolio with dual terminal/nav modes
+- Live at: https://abramstamper.dev
 
 ---
 
@@ -38,10 +38,11 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 - **TypeScript 5.9**: Type safety, shows professional development practices
 
 ### Deployment Strategy
-- **Server**: Apache (current setup, keep it)
+- **Hosting**: GitHub Pages
 - **CI**: GitHub Actions (lint, test, build on PR/push)
-- **CD**: GitHub Actions deploy to Apache via SCP/rsync
-- **Process**: Build → Generate static files → Copy to `/var/www/html`
+- **CD**: GitHub Actions deploy to GitHub Pages via `actions/deploy-pages`
+- **Process**: Build → Upload artifact → Deploy to GitHub Pages
+- **Domain**: `abramstamper.dev` (custom domain with CNAME file)
 - **SEO Solution**: Pre-render all routes at build time (no server-side runtime needed)
 
 ---
@@ -1118,46 +1119,40 @@ const diff = now.getTime() - buildTime.getTime();
 
 ### Phase 3: Navigation Mode ✅ COMPLETE
 - [x] Nav mode components:
-  - [x] Header with sticky navigation
-  - [x] Hero section with name, title, CTA buttons
-  - [x] About section with bio
-  - [x] Experience section with interactive horizontal timeline
-  - [x] Skills section with categorized tags
+  - [x] Header with sticky navigation and dark/light mode toggle
+  - [x] Hero section with name, title, animated typing terminal, CTA buttons
+  - [x] About section with bio and professional highlight cards
+  - [x] Experience section with interactive horizontal timeline and company logos
+  - [x] Skills section with 9 categorized skill groups (3x3 grid)
   - [x] Projects section with card grid
-  - [x] Certifications section with logos
-  - [x] Contact section with email, GitHub, LinkedIn
-  - [x] Footer with terminal switch
+  - [x] Certifications section with logos and dark mode variants
+  - [x] Contact section with email, GitHub, LinkedIn, Stack Overflow
+  - [x] Footer with terminal switch and copyright
 - [x] Mode toggle between terminal and nav
 - [x] Mobile-first responsive design
 - [x] Auto-detect mobile → nav mode
 - [x] Hamburger menu for mobile navigation
-
-### Phase 3.5: Navigation Mode Enhancements ✅ COMPLETE (Added Post-Initial Plan)
-- [x] **Dark/Light Mode Toggle**:
+- [x] **Dark/Light Mode**:
   - [x] NavThemeContext for managing color scheme
   - [x] System preference detection via `prefers-color-scheme: dark`
   - [x] LocalStorage persistence of user preference
   - [x] Toggle button in header (sun/moon icons)
   - [x] Class-based dark mode with Tailwind v4 (`@custom-variant dark`)
-  - [x] All nav components support dark: variants
-- [x] **Experience Timeline Redesign**:
+  - [x] Separate dark mode logo SVGs (text-only color changes, preserving graphic colors)
+- [x] **Experience Timeline**:
   - [x] Horizontal scrollable timeline with scroll buttons
-  - [x] Company logos displayed on timeline nodes
+  - [x] Company logos (Palo Alto, Aptiv, Vibenomics, Taylor) with dark variants
   - [x] Hover and click states for expanded detail cards
   - [x] Mobile accordion fallback
-  - [x] Smooth scroll with continuous scroll on hover
-- [x] **Company Logos**:
-  - [x] Palo Alto Networks (`/logos/paloalto.svg`)
-  - [x] Aptiv (`/logos/aptiv.svg`)
-  - [x] Vibenomics (`/logos/vibenomics.svg`) - optimized viewBox
-  - [x] Taylor University (`/logos/taylor.svg`)
-- [x] **Certifications Section**:
-  - [x] Grid layout with logo support
-  - [x] US Patent logo
-  - [x] Microsoft/Azure logo
-  - [x] Linux Foundation logo
-  - [x] SmallBox logo (year corrected to 2018)
-  - [x] Security Journey/HackEDU logo and certification (2021)
+- [x] **Hero Animated Typing**:
+  - [x] Terminal-style code block with red/yellow/green dots
+  - [x] Animated typing effect with configurable phrases (`heroTypingPhrases`)
+  - [x] Blinking cursor animation
+- [x] **Skills Categories**: AI & Automation, Languages, Backend, Frontend, Databases, Cloud Platforms, Infrastructure, Tools, Design
+- [x] **Professional Messaging**:
+  - [x] Title: "Principal Full Stack Engineer"
+  - [x] Highlight cards for recruiters (product-obsessed, force multiplier, accountable leader)
+  - [x] "Over a decade of product development experience"
 
 ### Phase 4: SEO & Performance
 - [ ] SSG pre-rendering
@@ -1166,10 +1161,19 @@ const diff = now.getTime() - buildTime.getTime();
 - [ ] Lighthouse optimization
 - [ ] Code splitting for games
 
-### Phase 5: CI/CD
-- [ ] GitHub Actions CI
-- [ ] GitHub Actions CD to Apache
-- [ ] Production deployment
+### Phase 5: CI/CD ✅ COMPLETE
+- [x] GitHub Actions CI (`.github/workflows/ci.yml`)
+  - [x] Runs on push/PR to main
+  - [x] Lint, test, build pipeline
+- [x] GitHub Actions CD to GitHub Pages (`.github/workflows/deploy.yml`)
+  - [x] Automatic deployment on push to main
+  - [x] Manual trigger support (workflow_dispatch)
+  - [x] CNAME file for custom domain
+- [x] Custom Domain Configuration
+  - [x] Primary domain: `abramstamper.dev`
+  - [x] DNS A records pointing to GitHub Pages IPs
+  - [x] HTTPS certificate provisioning
+  - [x] CNAME file in `/public/CNAME`
 
 ---
 
