@@ -1,15 +1,78 @@
+import { useState, useEffect } from 'react'
 import { siteData } from '../../config/data/site-data'
 
+const TYPING_PHRASES = [
+  'const engineer = "Full Stack";',
+  'ship(customerFocusedSolutions);',
+  'while(true) { learn(); build(); }',
+  'elevateTeam(mentorship);',
+  'deploy(productionReady);',
+  '// Principal Engineer @ PANW',
+]
+
+const TYPING_SPEED = 50
+const DELETE_SPEED = 30
+const PAUSE_DURATION = 2000
+
 export function Hero() {
+  const [displayText, setDisplayText] = useState('')
+  const [phraseIndex, setPhraseIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  useEffect(() => {
+    const currentPhrase = TYPING_PHRASES[phraseIndex]
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (displayText.length < currentPhrase.length) {
+          setDisplayText(currentPhrase.slice(0, displayText.length + 1))
+        } else {
+          // Pause before deleting
+          setTimeout(() => setIsDeleting(true), PAUSE_DURATION)
+        }
+      } else {
+        // Deleting
+        if (displayText.length > 0) {
+          setDisplayText(displayText.slice(0, -1))
+        } else {
+          setIsDeleting(false)
+          setPhraseIndex((prev) => (prev + 1) % TYPING_PHRASES.length)
+        }
+      }
+    }, isDeleting ? DELETE_SPEED : TYPING_SPEED)
+
+    return () => clearTimeout(timeout)
+  }, [displayText, isDeleting, phraseIndex])
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">
           {siteData.name}
         </h1>
-        <p className="text-xl sm:text-2xl text-gray-600 dark:text-gray-300 mb-8">
+        <p className="text-xl sm:text-2xl text-gray-600 dark:text-gray-300 mb-6">
           {siteData.title}
         </p>
+
+        {/* Animated code block */}
+        <div className="mb-8 flex justify-center">
+          <div className="bg-gray-900 dark:bg-gray-950 rounded-lg p-4 shadow-lg border border-gray-700 inline-block text-left min-w-[320px] sm:min-w-[400px]">
+            {/* Terminal header dots */}
+            <div className="flex gap-2 mb-3">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            </div>
+            {/* Code content */}
+            <div className="font-mono text-sm sm:text-base">
+              <span className="text-gray-500">{'>'} </span>
+              <span className="text-green-400">{displayText}</span>
+              <span className="inline-block w-2 h-5 bg-green-400 ml-1 animate-pulse"></span>
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a
             href={siteData.resume.url}
