@@ -99,22 +99,33 @@ I operate as a force multiplier by elevating & assisting others to create a posi
   ],
 
   skills: [
+    // Row 1: AI, Tools, Design
     {
       name: 'AI & Automation',
       skills: ['Claude Code', 'ChatGPT', 'Claude', 'Gemini', 'MCP Servers', 'Prompt Engineering'],
     },
     {
-      name: 'Languages',
-      skills: ['Python 3.10+', 'TypeScript', 'JavaScript/ES6+', 'Java', 'SQL', 'Ruby'],
+      name: 'Tools',
+      skills: ['Git/GitHub', 'VS Code', 'Bash', 'Linux/Ubuntu', 'Jira'],
     },
     {
-      name: 'Backend',
-      skills: ['FastAPI', 'Flask', 'NodeJS', 'HapiJS', 'Ruby on Rails', 'REST APIs'],
+      name: 'Design',
+      skills: ['Figma', 'Sketch', 'Adobe Photoshop', 'Adobe Illustrator', 'Final Cut Pro'],
+    },
+    // Row 2: Languages, Frontend, Backend
+    {
+      name: 'Languages',
+      skills: ['Python 3.10+', 'TypeScript', 'JavaScript/ES6+', 'Java', 'SQL', 'Ruby'],
     },
     {
       name: 'Frontend',
       skills: ['React', 'Redux', 'HTML/CSS', 'Tailwind CSS', 'Material UI', 'Bootstrap', 'Bulma'],
     },
+    {
+      name: 'Backend',
+      skills: ['FastAPI', 'Flask', 'NodeJS', 'HapiJS', 'Ruby on Rails', 'REST APIs'],
+    },
+    // Row 3: Databases, Cloud, Infrastructure
     {
       name: 'Databases',
       skills: ['PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'DynamoDB', 'Elasticsearch', 'SQLite'],
@@ -126,14 +137,6 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     {
       name: 'Infrastructure',
       skills: ['Kubernetes', 'Helm', 'Docker', 'CI/CD', 'systemd'],
-    },
-    {
-      name: 'Tools',
-      skills: ['Git/GitHub', 'VS Code', 'Bash', 'Linux/Ubuntu', 'Jira'],
-    },
-    {
-      name: 'Design',
-      skills: ['Figma', 'Sketch', 'Adobe Photoshop', 'Adobe Illustrator', 'Final Cut Pro'],
     },
   ],
 
