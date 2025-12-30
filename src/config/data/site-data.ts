@@ -3,7 +3,7 @@ import type { SiteContent } from '../content'
 export const siteData: SiteContent = {
   name: 'Abram Stamper',
   title: 'Principal Full Stack Engineer',
-  hostname: 'abramstamper.com',
+  hostname: 'abramstamper.dev',
   username: 'guest',
 
   about: {
@@ -200,7 +200,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     github: 'https://github.com/abramjstamper',
     linkedin: 'https://linkedin.com/in/abramstamper',
     stackoverflow: 'https://stackexchange.com/users/2158482/abram-stamper',
-    website: 'https://abramstamper.com',
+    website: 'https://abramstamper.dev',
   },
 
   resume: {
