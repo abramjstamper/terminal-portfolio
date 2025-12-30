@@ -23,7 +23,7 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo / Name */}
           <a href="#" className="text-xl font-bold text-gray-900 dark:text-white">
-            {siteData.name.split(' ')[0]}
+            {siteData.name}
           </a>
 
           {/* Desktop Navigation */}
