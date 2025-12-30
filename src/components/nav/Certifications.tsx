@@ -1,16 +1,17 @@
 import { siteData } from '../../config/data/site-data'
+import { useNavTheme } from '../../contexts/NavThemeContext'
 
-// Logo mappings for certifications
-const CERT_LOGOS: Record<string, { url: string; darkInvert?: boolean }> = {
-  'US Patent': { url: '/logos/patent.svg', darkInvert: true },
-  'Microsoft': { url: '/logos/azure.svg' },
-  'The Linux Foundation': { url: '/logos/linuxfoundation.svg', darkInvert: true },
-  'SmallBox': { url: '/logos/smallbox.svg' },
-  'Security Journey': { url: '/logos/securityjourney.svg' },
+// Logo mappings for certifications with light and dark mode URLs
+const CERT_LOGOS: Record<string, { light: string; dark?: string; scale?: number }> = {
+  'US Patent': { light: '/logos/patent.svg', dark: '/logos/patent-dark.svg' },
+  'Microsoft': { light: '/logos/azure.svg' },
+  'The Linux Foundation': { light: '/logos/linuxfoundation.svg', dark: '/logos/linuxfoundation-dark.svg' },
+  'SmallBox': { light: '/logos/smallbox.svg' },
+  'Security Journey': { light: '/logos/securityjourney.svg', dark: '/logos/securityjourney-dark.svg', scale: 1.3 },
 }
 
 // Get logo info from issuer name
-const getLogoInfo = (issuer: string): { url: string; darkInvert?: boolean } | null => {
+const getLogoInfo = (issuer: string): { light: string; dark?: string; scale?: number } | null => {
   for (const [key, info] of Object.entries(CERT_LOGOS)) {
     if (issuer.includes(key)) return info
   }
@@ -18,6 +19,8 @@ const getLogoInfo = (issuer: string): { url: string; darkInvert?: boolean } | nu
 }
 
 export function Certifications() {
+  const { colorScheme } = useNavTheme()
+
   return (
     <section id="certifications" className="py-16 bg-white dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,9 +40,10 @@ export function Certifications() {
                 <div className="flex-shrink-0 w-14 h-14 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-200 dark:border-gray-600 p-2">
                   {logoInfo ? (
                     <img
-                      src={logoInfo.url}
+                      src={colorScheme === 'dark' && logoInfo.dark ? logoInfo.dark : logoInfo.light}
                       alt={`${cert.issuer} logo`}
-                      className={`max-w-full max-h-full object-contain ${logoInfo.darkInvert ? 'dark:invert' : ''}`}
+                      className="max-w-full max-h-full object-contain"
+                      style={logoInfo.scale ? { transform: `scale(${logoInfo.scale})` } : undefined}
                     />
                   ) : cert.issuer.includes('Patent') ? (
                     <svg className="w-8 h-8 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -24,6 +24,7 @@ export interface ContactInfo {
   email: string
   github?: string
   linkedin?: string
+  stackoverflow?: string
   website?: string
 }
 

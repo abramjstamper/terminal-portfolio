@@ -1,18 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { siteData } from '../../config/data/site-data'
+import { useNavTheme } from '../../contexts/NavThemeContext'
 
-// Company logo mappings with dark mode settings
-const COMPANY_LOGOS: Record<string, { url: string; darkInvert?: boolean; scale?: number }> = {
-  'Palo Alto Networks': { url: '/logos/paloalto.svg' },
-  'Aptiv Connected Services': { url: '/logos/aptiv.svg', darkInvert: true },
-  'Aptiv PLC': { url: '/logos/aptiv.svg', darkInvert: true },
-  'Vibenomics (Fuzic Media)': { url: '/logos/vibenomics.svg' },
-  'Taylor University': { url: '/logos/taylor.svg', darkInvert: true, scale: 1.5 },
+// Company logo mappings with light and dark mode URLs
+const COMPANY_LOGOS: Record<string, { light: string; dark?: string; scale?: number }> = {
+  'Palo Alto Networks': { light: '/logos/paloalto.svg' },
+  'Aptiv Connected Services': { light: '/logos/aptiv.svg', dark: '/logos/aptiv-dark.svg' },
+  'Aptiv PLC': { light: '/logos/aptiv.svg', dark: '/logos/aptiv-dark.svg' },
+  'Vibenomics (Fuzic Media)': { light: '/logos/vibenomics.svg', dark: '/logos/vibenomics-dark.svg' },
+  'Taylor University': { light: '/logos/taylor.svg', dark: '/logos/taylor-dark.svg', scale: 1.5 },
 }
 
 const NODE_WIDTH = 180
 
 export function Experience() {
+  const { colorScheme } = useNavTheme()
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [isScrollingLeft, setIsScrollingLeft] = useState(false)
@@ -103,13 +105,14 @@ export function Experience() {
     const colorIndex = company.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length
 
     if (logoInfo) {
+      const logoUrl = colorScheme === 'dark' && logoInfo.dark ? logoInfo.dark : logoInfo.light
       const scaleStyle = logoInfo.scale ? { transform: `scale(${logoInfo.scale})` } : undefined
       return (
         <div className="h-10 w-20 flex items-center justify-center">
           <img
-            src={logoInfo.url}
+            src={logoUrl}
             alt={`${company} logo`}
-            className={`max-h-10 max-w-20 object-contain ${logoInfo.darkInvert ? 'dark:invert' : ''}`}
+            className="max-h-10 max-w-20 object-contain"
             style={scaleStyle}
             onError={(e) => {
               // Fallback to initials if logo fails to load

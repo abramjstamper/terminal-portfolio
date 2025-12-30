@@ -52,6 +52,21 @@ export function Contact() {
               LinkedIn
             </a>
           )}
+
+          {/* Stack Overflow */}
+          {siteData.contact.stackoverflow && (
+            <a
+              href={siteData.contact.stackoverflow}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white rounded-lg hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-gray-900 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M15.725 0l-1.72 1.277 6.39 8.588 1.716-1.277L15.725 0zm-3.94 3.418l-1.369 1.644 8.225 6.85 1.369-1.644-8.225-6.85zm-3.15 4.465l-.905 1.94 9.702 4.517.904-1.94-9.701-4.517zm-1.85 4.86l-.44 2.093 10.473 2.201.44-2.092-10.473-2.203zM1.89 15.47V24h14.27v-8.53H1.89zm1.8 1.8h10.67v4.93H3.69v-4.93zm.94 1.53v1.8h8.75v-1.8h-8.75z"/>
+              </svg>
+              Stack Overflow
+            </a>
+          )}
         </div>
       </div>
     </section>

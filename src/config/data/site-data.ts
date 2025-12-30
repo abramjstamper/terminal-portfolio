@@ -100,28 +100,40 @@ I operate as a force multiplier by elevating & assisting others to create a posi
 
   skills: [
     {
+      name: 'AI & Automation',
+      skills: ['Claude Code', 'MCP Servers', 'Cursor', 'GitHub Copilot', 'Prompt Engineering'],
+    },
+    {
       name: 'Languages',
-      skills: ['Python 3.10+', 'TypeScript', 'JavaScript/ES6+', 'Java', 'SQL'],
+      skills: ['Python 3.10+', 'TypeScript', 'JavaScript/ES6+', 'Java', 'SQL', 'Ruby'],
     },
     {
       name: 'Backend',
-      skills: ['FastAPI', 'Flask', 'NodeJS', 'REST APIs', 'Redis'],
+      skills: ['FastAPI', 'Flask', 'NodeJS', 'HapiJS', 'Ruby on Rails', 'REST APIs'],
     },
     {
       name: 'Frontend',
-      skills: ['React', 'Redux', 'HTML/CSS', 'Tailwind CSS'],
+      skills: ['React', 'Redux', 'HTML/CSS', 'Tailwind CSS', 'MUI', 'Bootstrap', 'Bulma'],
     },
     {
       name: 'Databases',
-      skills: ['PostgreSQL', 'MySQL', 'Redis', 'DynamoDB'],
+      skills: ['PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'DynamoDB', 'Elasticsearch', 'SQLite'],
     },
     {
-      name: 'Cloud & Infrastructure',
-      skills: ['AWS', 'GCP', 'Azure', 'Kubernetes', 'Docker'],
+      name: 'Cloud Platforms',
+      skills: ['AWS', 'GCP', 'Azure', 'Digital Ocean', 'Firebase'],
     },
     {
-      name: 'Tools & Practices',
-      skills: ['Git/GitHub', 'Agile/Scrum', 'Jira', 'Linux', 'CI/CD'],
+      name: 'Infrastructure',
+      skills: ['Kubernetes', 'Helm', 'Docker', 'CI/CD', 'systemd'],
+    },
+    {
+      name: 'Tools',
+      skills: ['Git/GitHub', 'VS Code', 'Bash', 'Linux/Ubuntu', 'Jira'],
+    },
+    {
+      name: 'Design',
+      skills: ['Figma', 'Sketch', 'Adobe Photoshop', 'Adobe Illustrator', 'Final Cut Pro'],
     },
   ],
 
@@ -187,6 +199,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     email: 'abram.j.stamper@me.com',
     github: 'https://github.com/abramjstamper',
     linkedin: 'https://linkedin.com/in/abramstamper',
+    stackoverflow: 'https://stackexchange.com/users/2158482/abram-stamper',
     website: 'https://abramstamper.com',
   },
 
