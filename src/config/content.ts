@@ -27,6 +27,14 @@ export interface ContactInfo {
   website?: string
 }
 
+export interface Certification {
+  name: string
+  issuer: string
+  description?: string
+  year?: string
+  url?: string
+}
+
 export interface SiteContent {
   name: string
   title: string
@@ -39,6 +47,7 @@ export interface SiteContent {
   experience: Experience[]
   skills: SkillCategory[]
   projects: Project[]
+  certifications: Certification[]
   contact: ContactInfo
   resume: {
     url: string

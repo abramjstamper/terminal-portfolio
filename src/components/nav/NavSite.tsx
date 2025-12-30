@@ -4,19 +4,21 @@ import { About } from './About'
 import { Experience } from './Experience'
 import { Skills } from './Skills'
 import { Projects } from './Projects'
+import { Certifications } from './Certifications'
 import { Contact } from './Contact'
 import { Footer } from './Footer'
 
 export function NavSite() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
       <Header />
       <main>
         <Hero />
         <About />
         <Experience />
         <Skills />
-        <Projects />
+        {__SHOW_PROJECTS__ && <Projects />}
+        <Certifications />
         <Contact />
       </main>
       <Footer />

@@ -71,6 +71,31 @@ I operate as a force multiplier by elevating & assisting others to create a posi
       ],
       technologies: ['Azure', 'PostgreSQL', 'NodeJS', 'React', 'Python'],
     },
+    {
+      company: 'Vibenomics (Fuzic Media)',
+      title: 'Software Engineering Intern',
+      period: 'Summer 2017',
+      description: 'Developed internal tools for managing IoT audio devices deployed in retail locations.',
+      highlights: [
+        'Built React dashboard for customer success team to manage field devices',
+        'Developed device and song history tracking for auditing and royalty reporting',
+        'Contributed to Android application for in-store audio management',
+        'Implemented serverless backend with AWS Lambda and DynamoDB',
+      ],
+      technologies: ['React', 'AWS Lambda', 'DynamoDB', 'Android', 'JavaScript'],
+    },
+    {
+      company: 'Taylor University',
+      title: 'Pro Bono Software Developer',
+      period: '2015 - 2016',
+      description: 'Unpaid 20 hrs/week position developing web applications for non-profits as part of Software Engineering concentration curriculum.',
+      highlights: [
+        'Collaborated with senior developers on production applications',
+        'Built full-stack web apps pro bono for NGOs and non-profits',
+        'Gained hands-on experience that accelerated early career growth',
+      ],
+      technologies: ['AngularJS', 'Angular 2', 'Python', 'Django', 'Jasmine'],
+    },
   ],
 
   skills: [
@@ -111,6 +136,50 @@ I operate as a force multiplier by elevating & assisting others to create a posi
       name: 'Electronic Device Intrusion Detection',
       description: 'Patented system for detecting intrusions in electronic devices (US11341238B2)',
       technologies: ['IoT', 'Security', 'Embedded Systems'],
+    },
+  ],
+
+  certifications: [
+    {
+      name: 'Electronic Device Intrusion Detection',
+      issuer: 'US Patent (US11341238B2)',
+      description: 'Method for detecting hacking of electronic devices by monitoring software activity values against expected thresholds and initiating security actions when anomalies are detected.',
+      year: '2021',
+      url: 'https://patents.google.com/patent/US11341238B2',
+    },
+    {
+      name: 'Azure Solutions Architect (AZ-305)',
+      issuer: 'Microsoft',
+      description: 'Designing infrastructure, data storage, security, and business continuity solutions on Microsoft Azure.',
+      year: '2020',
+      url: 'https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/',
+    },
+    {
+      name: 'Azure Fundamentals (AZ-900)',
+      issuer: 'Microsoft',
+      description: 'Foundational knowledge of cloud concepts, Azure services, security, privacy, and pricing.',
+      year: '2020',
+      url: 'https://learn.microsoft.com/en-us/credentials/certifications/azure-fundamentals/',
+    },
+    {
+      name: 'Introduction to Linux (LFS101)',
+      issuer: 'The Linux Foundation',
+      description: 'Linux system administration fundamentals including command line, file management, and shell scripting.',
+      year: '2021',
+      url: 'https://training.linuxfoundation.org/training/introduction-to-linux/',
+    },
+    {
+      name: 'Design Thinking',
+      issuer: 'SmallBox (Indianapolis, IN)',
+      description: 'Human-centered design methodology for creative problem solving and innovation.',
+      year: '2018',
+    },
+    {
+      name: 'Certified Secure Developer',
+      issuer: 'Security Journey (HackEDU)',
+      description: 'Training and certification in secure software development practices and vulnerability prevention.',
+      year: '2021',
+      url: 'https://www.securityjourney.com/secure-development-training',
     },
   ],
 

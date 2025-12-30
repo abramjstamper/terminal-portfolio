@@ -29,9 +29,9 @@ export function Terminal() {
 
   const containerClasses = [
     'terminal-container',
-    'min-h-screen',
+    'h-screen',
     'p-4',
-    'overflow-auto',
+    'overflow-y-auto',
     'font-mono',
     'text-sm',
     'md:text-base',

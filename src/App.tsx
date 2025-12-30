@@ -1,5 +1,6 @@
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ModeProvider, useMode } from './contexts/ModeContext'
+import { NavThemeProvider } from './contexts/NavThemeContext'
 import { Terminal } from './components/terminal'
 import { NavSite } from './components/nav'
 
@@ -10,7 +11,11 @@ function AppContent() {
     return <Terminal />
   }
 
-  return <NavSite />
+  return (
+    <NavThemeProvider>
+      <NavSite />
+    </NavThemeProvider>
+  )
 }
 
 function App() {

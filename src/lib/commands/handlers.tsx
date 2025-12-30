@@ -15,7 +15,7 @@ const ASCII_BANNER = `
 `
 
 // Available sections
-const SECTIONS = ['about', 'experience', 'skills', 'projects', 'contact', 'resume'] as const
+const SECTIONS = ['about', 'experience', 'skills', 'projects', 'certifications', 'contact', 'resume'] as const
 type Section = typeof SECTIONS[number]
 
 // Section content generators
@@ -82,6 +82,17 @@ function getSectionContent(section: Section): string {
       }
       return lines.join('\n')
     }
+
+    case 'certifications':
+      return siteData.certifications
+        .map((cert) => {
+          const lines = [`${cert.name}`]
+          lines.push(`  Issued by: ${cert.issuer}`)
+          if (cert.year) lines.push(`  Year: ${cert.year}`)
+          if (cert.url) lines.push(`  URL: ${cert.url}`)
+          return lines.join('\n')
+        })
+        .join('\n\n')
 
     case 'resume':
       return [

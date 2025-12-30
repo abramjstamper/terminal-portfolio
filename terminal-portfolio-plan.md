@@ -66,9 +66,11 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 **Traditional website experience** for accessibility and mobile:
 
 **Header**:
-- Sticky nav bar: About | Experience | Skills | Projects | Contact
+- Sticky nav bar: About | Experience | Skills | Credentials | Contact
+- Dark/light mode toggle button (sun/moon icons)
 - "Switch to Terminal" button (right side)
 - Name/logo on left
+- Full dark mode support with system preference detection
 
 **Hero Section**:
 - Name, title, brief tagline
@@ -79,12 +81,14 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 - Bio text
 - Key highlights or fun facts
 
-**Experience Section** (Interactive Timeline):
-- Horizontal timeline with nodes for each role
-- Default state: Company name + title visible at each node
-- Hover/click expands: full description, key projects, tech stack, dates
-- Smooth animation on expand
-- Mobile: tap to expand (no hover)
+**Experience Section** (Interactive Horizontal Timeline):
+- Horizontally scrollable timeline with left/right scroll buttons
+- Company logos displayed at each timeline node
+- Default state: Logo, company name, title, and start year visible
+- Hover: Highlights node and shows brief info card
+- Click: Expands detailed card below timeline with full description, highlights, tech stack
+- Scroll buttons: Click for discrete scroll, hover for continuous smooth scroll
+- Mobile: Accordion-style cards with tap to expand (no horizontal timeline)
 
 **Skills Section**:
 - Grouped by category (Languages, Frameworks, Tools, etc.)
@@ -93,6 +97,12 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 **Projects Section**:
 - Card grid
 - Each card: Screenshot/icon, title, description, tech stack, links (GitHub, live demo)
+
+**Certifications & Patents Section**:
+- Grid layout with certification cards
+- Company/issuer logos (US Patent, Microsoft, Linux Foundation, SmallBox, Security Journey)
+- Certification name, issuer, year, description
+- External links to verify credentials
 
 **Contact Section**:
 - Email, LinkedIn, GitHub links
@@ -108,10 +118,19 @@ A React/TypeScript portfolio website with a retro terminal interface to showcase
 - Default to nav mode on mobile (terminal requires keyboard)
 
 **Styling**:
-- Clean, minimal design
-- Can share color palette with terminal themes (or independent)
+- Clean, minimal design with Tailwind CSS
+- Light/dark mode with system preference detection
+- Color scheme toggle persisted to localStorage
+- Dark mode enabled via Tailwind v4 `@custom-variant dark` directive
 - Smooth scroll between sections
 - Subtle animations on scroll (respect reduced-motion)
+
+**Dark Mode Implementation**:
+- NavThemeContext manages color scheme state
+- System preference detected via `window.matchMedia('(prefers-color-scheme: dark)')`
+- User preference saved to localStorage (`nav-color-scheme` key)
+- Toggle adds/removes `dark` class on `document.documentElement`
+- All components use `dark:` Tailwind variants for dark mode styles
 
 ---
 
@@ -765,11 +784,12 @@ export function getCurrentThemeId(): string {
 
 ### Sections
 1. **about**: Bio, interests, personal statement
-2. **experience**: Work history (role, company, period, description, highlights)
+2. **experience**: Work history (role, company, period, description, highlights, technologies)
 3. **skills**: Technologies grouped by category
 4. **projects**: Personal/open source projects (can show "coming soon")
-5. **contact**: Email, GitHub, LinkedIn with clickable links
-6. **resume**: Download link, last updated date
+5. **certifications**: Patents, certifications, credentials with logos
+6. **contact**: Email, GitHub, LinkedIn with clickable links
+7. **resume**: Download link, last updated date
 
 ### Content Configuration
 All content lives in a single config file for easy updates:
@@ -811,6 +831,15 @@ src/config/content.ts          # Type definitions
    - Awarded patent for Electronic Device Intrusion Detection (US11341238B2)
    - Technologies: Azure, PostgreSQL, NodeJS, React, Python
 
+5. **Software Engineer** @ Vibenomics (Fuzic Media) (May 2017 - May 2018)
+   - Built location-aware audio advertisement targeting system
+   - Developed real-time analytics dashboard for ad performance
+   - Technologies: Python, JavaScript, PostgreSQL, AWS
+
+6. **Software Developer Intern** @ Taylor University (2016 - 2017)
+   - Developed internal tools and web applications
+   - Technologies: PHP, JavaScript, MySQL
+
 **Skills:**
 - Languages: Python 3.10+, TypeScript, JavaScript/ES6+, Java, SQL
 - Backend: FastAPI, Flask, NodeJS, REST APIs, Redis
@@ -823,6 +852,13 @@ src/config/content.ts          # Type definitions
 - BS of Computer Science (2018) - Taylor University
 - Concentration in Software Engineering
 - Cumulative GPA 3.8
+
+**Certifications & Patents:**
+1. **US Patent** - Electronic Device Intrusion Detection (US11341238B2) - 2022
+2. **Azure Fundamentals** - Microsoft (AZ-900) - 2021
+3. **Certified Secure Developer** - Security Journey (HackEDU) - 2021
+4. **Certified Kubernetes Application Developer** - Linux Foundation (CKAD) - 2020
+5. **Idea Factory Champion** - SmallBox - 2018
 
 **Contact:**
 - Email: abram.j.stamper@me.com
@@ -837,23 +873,46 @@ src/config/content.ts          # Type definitions
 ```
 terminal-portfolio/
 ├── public/
-│   └── assets/
-│       └── resume.pdf
+│   ├── assets/
+│   │   └── resume.pdf
+│   └── logos/                        # Company and certification logos
+│       ├── paloalto.svg
+│       ├── aptiv.svg
+│       ├── vibenomics.svg
+│       ├── taylor.svg
+│       ├── patent.svg
+│       ├── azure.svg
+│       ├── linuxfoundation.svg
+│       ├── smallbox.svg
+│       └── securityjourney.svg
 ├── src/
 │   ├── components/
-│   │   └── terminal/
-│   │       ├── Terminal.tsx          # Main container, handles submit
-│   │       ├── TerminalInput.tsx     # Input with cursor, prompt
-│   │       ├── TerminalOutput.tsx    # Renders output lines
-│   │       └── index.ts
+│   │   ├── terminal/
+│   │   │   ├── Terminal.tsx          # Main container, handles submit
+│   │   │   ├── TerminalInput.tsx     # Input with cursor, prompt
+│   │   │   ├── TerminalOutput.tsx    # Renders output lines
+│   │   │   └── index.ts
+│   │   └── nav/                      # Navigation mode components
+│   │       ├── NavSite.tsx           # Main nav layout
+│   │       ├── Header.tsx            # Sticky header with nav + dark mode toggle
+│   │       ├── Hero.tsx              # Hero section
+│   │       ├── About.tsx             # About section
+│   │       ├── Experience.tsx        # Horizontal timeline with logos
+│   │       ├── Skills.tsx            # Skills categories
+│   │       ├── Projects.tsx          # Project cards
+│   │       ├── Certifications.tsx    # Certifications grid with logos
+│   │       ├── Contact.tsx           # Contact links
+│   │       └── Footer.tsx            # Footer with terminal switch
 │   ├── config/
 │   │   ├── content.ts                # Type definitions
-│   │   ├── themes.ts                 # Theme configurations
+│   │   ├── themes.ts                 # Terminal theme configurations
 │   │   ├── version.ts                # Package version for uname
 │   │   └── data/
-│   │       └── site-data.ts          # Actual content
+│   │       └── site-data.ts          # Actual content (experience, skills, etc.)
 │   ├── contexts/
-│   │   └── ThemeContext.tsx          # Theme provider
+│   │   ├── ThemeContext.tsx          # Terminal theme provider
+│   │   ├── ModeContext.tsx           # Terminal/nav mode provider
+│   │   └── NavThemeContext.tsx       # Nav light/dark mode provider
 │   ├── hooks/
 │   │   └── useTerminal.ts            # Terminal state (reducer pattern)
 │   ├── lib/
@@ -867,10 +926,9 @@ terminal-portfolio/
 │   ├── types/
 │   │   └── terminal.ts               # Types
 │   ├── App.tsx
-│   ├── index.css                     # Tailwind + custom styles
+│   ├── index.css                     # Tailwind + custom styles + dark mode variant
 │   └── main.tsx
 ├── index.html
-├── tailwind.config.js
 ├── vite.config.ts
 ├── vitest.config.ts
 ├── tsconfig.json
@@ -1035,27 +1093,71 @@ const diff = now.getTime() - buildTime.getTime();
 
 ## Development Phases
 
-### Phase 1: Core Terminal
-- [ ] Project setup (Vite, React, TypeScript, Tailwind)
-- [ ] Terminal components (Terminal, Input, Output)
-- [ ] Command parser with operator support
-- [ ] All core commands with Linux-style args
-- [ ] Theme system with 7 themes
-- [ ] Tab completion
-- [ ] Command history
-- [ ] Unit tests
+### Phase 1: Core Terminal ✅ COMPLETE
+- [x] Project setup (Vite 6.x, React 19, TypeScript 5.x, Tailwind v4)
+- [x] Terminal components (Terminal, Input, Output)
+- [x] Command parser with operator support (`&&`, `;`)
+- [x] All core commands with Linux-style args (help, man, ls, cat, cd, pwd, clear, history, echo, whoami, hostname, id, exit/logout, date, uname, ifconfig, uptime, theme, motd, export)
+- [x] Theme system with 7+ themes (green, amber, blue, matrix, high-contrast, light, rainbow)
+- [x] Tab completion for commands, sections, and theme names
+- [x] Command history with up/down arrow navigation
+- [x] Unit tests with Vitest + React Testing Library
 
-### Phase 2: Polish & Easter Eggs
-- [ ] ASCII art banner (motd)
-- [ ] Easter egg commands (sudo, sl, cowsay, etc.)
-- [ ] Scanline and glow effects
-- [ ] Sound effects (optional, respect preferences)
+### Phase 2: Polish & Easter Eggs ✅ COMPLETE
+- [x] ASCII art banner (motd command)
+- [x] Easter egg commands:
+  - [x] `sudo` - Witty denial message
+  - [x] `sl` - ASCII train animation
+  - [x] `cowsay` - ASCII cow with message
+  - [x] `matrix` - Matrix rain animation
+  - [x] `neofetch` - System info in stylized format
+  - [x] `fortune` - Random quotes/sayings
+  - [x] `cal` - ASCII calendar for current month
+- [x] Scanline and CRT glow effects (toggleable per theme)
+- [x] Reduced motion support (`prefers-reduced-motion`)
 
-### Phase 3: Navigation Mode
-- [ ] Nav mode components
-- [ ] Mode toggle
-- [ ] Mobile-first responsive
-- [ ] Auto-detect mobile → nav mode
+### Phase 3: Navigation Mode ✅ COMPLETE
+- [x] Nav mode components:
+  - [x] Header with sticky navigation
+  - [x] Hero section with name, title, CTA buttons
+  - [x] About section with bio
+  - [x] Experience section with interactive horizontal timeline
+  - [x] Skills section with categorized tags
+  - [x] Projects section with card grid
+  - [x] Certifications section with logos
+  - [x] Contact section with email, GitHub, LinkedIn
+  - [x] Footer with terminal switch
+- [x] Mode toggle between terminal and nav
+- [x] Mobile-first responsive design
+- [x] Auto-detect mobile → nav mode
+- [x] Hamburger menu for mobile navigation
+
+### Phase 3.5: Navigation Mode Enhancements ✅ COMPLETE (Added Post-Initial Plan)
+- [x] **Dark/Light Mode Toggle**:
+  - [x] NavThemeContext for managing color scheme
+  - [x] System preference detection via `prefers-color-scheme: dark`
+  - [x] LocalStorage persistence of user preference
+  - [x] Toggle button in header (sun/moon icons)
+  - [x] Class-based dark mode with Tailwind v4 (`@custom-variant dark`)
+  - [x] All nav components support dark: variants
+- [x] **Experience Timeline Redesign**:
+  - [x] Horizontal scrollable timeline with scroll buttons
+  - [x] Company logos displayed on timeline nodes
+  - [x] Hover and click states for expanded detail cards
+  - [x] Mobile accordion fallback
+  - [x] Smooth scroll with continuous scroll on hover
+- [x] **Company Logos**:
+  - [x] Palo Alto Networks (`/logos/paloalto.svg`)
+  - [x] Aptiv (`/logos/aptiv.svg`)
+  - [x] Vibenomics (`/logos/vibenomics.svg`) - optimized viewBox
+  - [x] Taylor University (`/logos/taylor.svg`)
+- [x] **Certifications Section**:
+  - [x] Grid layout with logo support
+  - [x] US Patent logo
+  - [x] Microsoft/Azure logo
+  - [x] Linux Foundation logo
+  - [x] SmallBox logo (year corrected to 2018)
+  - [x] Security Journey/HackEDU logo and certification (2021)
 
 ### Phase 4: SEO & Performance
 - [ ] SSG pre-rendering
