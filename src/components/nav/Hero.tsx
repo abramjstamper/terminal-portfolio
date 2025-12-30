@@ -3,7 +3,7 @@ import { siteData } from '../../config/data/site-data'
 
 const TYPING_SPEED = 50
 const DELETE_SPEED = 30
-const PAUSE_DURATION = 2000
+const PAUSE_DURATION = 3000
 
 export function Hero() {
   const [displayText, setDisplayText] = useState('')
