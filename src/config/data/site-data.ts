@@ -31,7 +31,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
         'Broke down epics into actionable tickets for less experienced developers',
         'Integrated customer feedback to continuously improve the product',
       ],
-      technologies: ['Python', 'FastAPI', 'React', 'PostgreSQL', 'Kubernetes', 'GCP'],
+      technologies: ['Python', 'FastAPI', 'React', 'PostgreSQL', 'Kubernetes', 'Google Cloud Platform', 'Helm', 'Redis', 'Google BigQuery'],
     },
     {
       company: 'Palo Alto Networks',
@@ -44,7 +44,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
         'Upleveled team observability, alerting, and metrics tooling',
         'Supported core development on internal tooling and libraries',
       ],
-      technologies: ['Python', 'React', 'Redis', 'PostgreSQL', 'Kubernetes'],
+      technologies: ['Python', 'Flask', 'Celery', 'React', 'Redis', 'MariaDB/MySQL', 'Kubernetes', 'Helm', 'Google Cloud Platform', 'Elasticsearch'],
     },
     {
       company: 'Aptiv Connected Services',
@@ -56,7 +56,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
         'Collaborated across 10 teams to deliver integrated solutions',
         'Completed numerous PoCs from design concept to production release',
       ],
-      technologies: ['Azure', 'AWS', 'Kubernetes', 'Python', 'NodeJS'],
+      technologies: ['Azure', 'Kubernetes', 'Python', 'NodeJS', 'Docker', 'Java', 'MongoDB'],
     },
     {
       company: 'Aptiv PLC',
@@ -69,12 +69,12 @@ I operate as a force multiplier by elevating & assisting others to create a posi
         'Developed initial UX wireframes and product architecture',
         'Awarded patent for Electronic Device Intrusion Detection',
       ],
-      technologies: ['Azure', 'PostgreSQL', 'NodeJS', 'React', 'Python'],
+      technologies: ['Azure', 'PostgreSQL', 'NodeJS', 'React', 'Python', 'C/C++', 'MQTT', 'Embedded Systems'],
     },
     {
       company: 'Vibenomics (Fuzic Media)',
       title: 'Software Engineering Intern',
-      period: 'Summer 2017',
+      period: 'May 2017 - Aug 2017',
       description: 'Developed internal tools for managing IoT audio devices deployed in retail locations.',
       highlights: [
         'Built React dashboard for customer success team to manage field devices',
@@ -82,19 +82,19 @@ I operate as a force multiplier by elevating & assisting others to create a posi
         'Contributed to Android application for in-store audio management',
         'Implemented serverless backend with AWS Lambda and DynamoDB',
       ],
-      technologies: ['React', 'AWS Lambda', 'DynamoDB', 'Android', 'JavaScript'],
+      technologies: ['React', 'AWS Lambda', 'AWS DynamoDB', 'Android', 'JavaScript'],
     },
     {
       company: 'Taylor University',
-      title: 'Pro Bono Software Developer',
-      period: '2015 - 2016',
+      title: 'Student Software Developer',
+      period: 'Jan 2015 - May 2016',
       description: 'Unpaid 20 hrs/week position developing web applications for non-profits as part of Software Engineering concentration curriculum.',
       highlights: [
-        'Collaborated with senior developers on production applications',
-        'Built full-stack web apps pro bono for NGOs and non-profits',
+        'Collaborated with external senior developers on production applications',
+        'Built full-stack web apps pro bono for NGOs and non-profits using Agile methodologies',
         'Gained hands-on experience that accelerated early career growth',
       ],
-      technologies: ['AngularJS', 'Angular 2', 'Python', 'Django', 'Jasmine'],
+      technologies: ['AngularJS', 'Angular 2', 'Python', 'Django', 'Jasmine', 'MariaDB/MySQL'],
     },
   ],
 
@@ -106,7 +106,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     },
     {
       name: 'Tools',
-      skills: ['Git/GitHub', 'VS Code', 'Bash', 'Linux/Ubuntu', 'Jira'],
+      skills: ['Git/GitHub', 'VS Code', 'PyCharm', 'Linux/Ubuntu', 'Jira', 'Confluence', 'Markdown'],
     },
     {
       name: 'Design',
@@ -123,12 +123,12 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     },
     {
       name: 'Backend',
-      skills: ['FastAPI', 'Flask', 'NodeJS', 'HapiJS', 'Ruby on Rails', 'REST APIs'],
+      skills: ['FastAPI', 'Flask', 'Pydantic', 'NodeJS', 'HapiJS', 'Ruby on Rails', 'REST APIs'],
     },
     // Row 3: Databases, Cloud, Infrastructure
     {
       name: 'Databases',
-      skills: ['PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'DynamoDB', 'Elasticsearch', 'SQLite'],
+      skills: ['PostgreSQL', 'MariaDB/MySQL', 'MongoDB', 'Redis', 'Elasticsearch', 'SQLite'],
     },
     {
       name: 'Cloud Platforms',
@@ -136,7 +136,7 @@ I operate as a force multiplier by elevating & assisting others to create a posi
     },
     {
       name: 'Infrastructure',
-      skills: ['Kubernetes', 'Helm', 'Docker', 'CI/CD', 'systemd'],
+      skills: ['Kubernetes', 'Helm', 'Docker', 'CI/CD', 'Bash', 'systemd', 'Raspberry Pi', 'NGINX', 'Datadog'],
     },
   ],
 
@@ -159,14 +159,14 @@ I operate as a force multiplier by elevating & assisting others to create a posi
       name: 'Electronic Device Intrusion Detection',
       issuer: 'US Patent (US11341238B2)',
       description: 'Method for detecting hacking of electronic devices by monitoring software activity values against expected thresholds and initiating security actions when anomalies are detected.',
-      year: '2021',
+      year: '2019',
       url: 'https://patents.google.com/patent/US11341238B2',
     },
     {
       name: 'Azure Solutions Architect (AZ-305)',
       issuer: 'Microsoft',
       description: 'Designing infrastructure, data storage, security, and business continuity solutions on Microsoft Azure.',
-      year: '2020',
+      year: '2021',
       url: 'https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/',
     },
     {
