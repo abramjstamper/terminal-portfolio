@@ -1,0 +1,38 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#111827"/>
+      <stop offset="100%" style="stop-color:#1f2937"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Terminal window -->
+  <rect x="100" y="120" width="1000" height="390" rx="12" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+
+  <!-- Terminal header -->
+  <rect x="100" y="120" width="1000" height="40" rx="12" fill="#1e293b"/>
+  <rect x="100" y="148" width="1000" height="12" fill="#1e293b"/>
+
+  <!-- Traffic lights -->
+  <circle cx="130" cy="140" r="8" fill="#ef4444"/>
+  <circle cx="158" cy="140" r="8" fill="#eab308"/>
+  <circle cx="186" cy="140" r="8" fill="#22c55e"/>
+
+  <!-- Terminal content -->
+  <text x="140" y="210" font-family="Monaco, Consolas, monospace" font-size="20" fill="#64748b">&gt; whoami</text>
+
+  <text x="140" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="52" font-weight="bold" fill="#ffffff">Abram Stamper</text>
+
+  <text x="140" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#94a3b8">Principal Full Stack Engineer</text>
+
+  <text x="140" y="380" font-family="Monaco, Consolas, monospace" font-size="18" fill="#22c55e">// Palo Alto Networks</text>
+
+  <!-- Skills tags -->
+  <text x="140" y="440" font-family="Monaco, Consolas, monospace" font-size="16" fill="#60a5fa">Python  React  TypeScript  Kubernetes  GCP</text>
+
+  <!-- URL -->
+  <text x="140" y="480" font-family="Monaco, Consolas, monospace" font-size="16" fill="#64748b">abramstamper.dev</text>
+</svg>
