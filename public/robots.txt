@@ -1,0 +1,6 @@
+# robots.txt for abramstamper.dev
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://abramstamper.dev/sitemap.xml
