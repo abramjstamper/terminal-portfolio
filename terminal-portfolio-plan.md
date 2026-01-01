@@ -1062,10 +1062,51 @@ const diff = now.getTime() - buildTime.getTime();
 
 ## Testing Strategy
 
-### Test Categories
-1. **Parser tests**: Command parsing, argument handling, operators
-2. **Handler tests**: Each command with various inputs
-3. **Integration tests**: Full terminal interaction flows
+### Current Test Coverage (262 tests across 20 files)
+
+#### Configuration & Data
+- `themes.test.ts` (16 tests) - Theme structure, colors, effects, themeIds
+- `site-data.test.ts` (26 tests) - Required fields, URL formats, completeness
+
+#### Command System
+- `parser.test.ts` (21 tests) - Parsing, operators, edge cases
+- `autocomplete.test.ts` (24 tests) - Commands, sections, themes
+- `handlers.test.tsx` (46 tests) - All commands with various inputs
+
+#### Core Infrastructure
+- `themeRegistry.test.ts` (11 tests) - Callback registration, theme switching
+- `useTerminal.test.ts` (23 tests) - Hook state, history, command execution
+
+#### Terminal Components (47 tests across 3 files)
+- `Terminal.test.tsx` (14) - Integration tests, command execution, motd, clear
+- `TerminalInput.test.tsx` (19) - Keyboard events, history, autocomplete
+- `TerminalOutput.test.tsx` (14) - Output rendering, line types, accessibility
+
+#### Nav Components (48 tests across 10 files)
+- `About.test.tsx` (4) - Section rendering, bio content
+- `Certifications.test.tsx` (5) - Certification cards, issuer display
+- `Contact.test.tsx` (6) - Contact links, email/social
+- `Experience.test.tsx` (5) - Timeline, company names, scroll buttons
+- `Footer.test.tsx` (3) - Copyright, terminal switch
+- `Header.test.tsx` (5) - Navigation links, dark mode toggle
+- `Hero.test.tsx` (5) - Name, title, CTA buttons
+- `NavSite.test.tsx` (4) - Main sections, layout
+- `Projects.test.tsx` (6) - Project cards, GitHub links
+- `Skills.test.tsx` (5) - Skill categories, icons
+
+### Test Infrastructure
+- **Framework**: Vitest with jsdom environment
+- **Utilities**: React Testing Library with renderHook
+- **Setup**: `src/test/setup.ts` (matchMedia mock)
+- **Helpers**: `src/test/utils.tsx` (provider wrapper)
+- **Globals**: `__BUILD_TIME__`, `__SHOW_PROJECTS__` defined in vitest.config.ts
+
+### Files Not Tested (Potential Future Coverage)
+
+**Medium Value (Contexts)**:
+- `src/contexts/ThemeContext.tsx` - Theme state management
+- `src/contexts/ModeContext.tsx` - Mode switching logic
+- `src/contexts/NavThemeContext.tsx` - Dark/light mode logic
 
 ### Example Test Cases
 ```typescript
@@ -1153,12 +1194,17 @@ const diff = now.getTime() - buildTime.getTime();
   - [x] Highlight cards for recruiters (product-obsessed, force multiplier, accountable leader)
   - [x] "Over a decade of product development experience"
 
-### Phase 4: SEO & Performance
-- [ ] SSG pre-rendering
-- [ ] Meta tags, Open Graph
-- [ ] Sitemap, robots.txt
-- [ ] Lighthouse optimization
-- [ ] Code splitting for games
+### Phase 4: SEO & Performance ✅ COMPLETE
+- [x] Meta tags (title, description, canonical URL)
+- [x] Open Graph tags for social sharing
+- [x] Twitter Card tags
+- [x] JSON-LD structured data (Person schema)
+- [x] Sitemap.xml (`/public/sitemap.xml`)
+- [x] robots.txt (`/public/robots.txt`)
+- [x] OG image for social sharing (`/public/og-image.png`)
+- [ ] SSG pre-rendering (optional for future)
+- [ ] Lighthouse optimization (optional for future)
+- [ ] Code splitting for games (optional for future)
 
 ### Phase 5: CI/CD ✅ COMPLETE
 - [x] GitHub Actions CI (`.github/workflows/ci.yml`)

@@ -74,6 +74,7 @@ export function NavThemeProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useNavTheme(): NavThemeContextValue {
   const context = useContext(NavThemeContext)
   if (!context) {

@@ -30,9 +30,8 @@ describe('Hero', () => {
 
   it('renders scroll indicator link to about section', () => {
     render(<Hero />)
-    const scrollLink = screen.getByRole('link', { name: '' })
     // The bounce arrow links to #about
-    const aboutLinks = screen.getAllByRole('link').filter(link => 
+    const aboutLinks = screen.getAllByRole('link').filter(link =>
       link.getAttribute('href') === '#about'
     )
     expect(aboutLinks.length).toBeGreaterThan(0)

@@ -1,14 +1,18 @@
+/* eslint-disable react-refresh/only-export-components */
 import { ReactNode } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { NavThemeProvider } from '../contexts/NavThemeContext'
 import { ModeProvider } from '../contexts/ModeContext'
+import { ThemeProvider } from '../contexts/ThemeContext'
 
 function AllProviders({ children }: { children: ReactNode }) {
   return (
     <ModeProvider>
-      <NavThemeProvider>
-        {children}
-      </NavThemeProvider>
+      <ThemeProvider>
+        <NavThemeProvider>
+          {children}
+        </NavThemeProvider>
+      </ThemeProvider>
     </ModeProvider>
   )
 }
