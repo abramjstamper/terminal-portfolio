@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   define: {
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __GIT_COMMIT__: JSON.stringify('test'),
     __SHOW_PROJECTS__: JSON.stringify(false),
   },
   test: {
