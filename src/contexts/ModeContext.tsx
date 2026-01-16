@@ -18,7 +18,6 @@ interface ModeContextValue {
 const ModeContext = createContext<ModeContextValue | null>(null)
 
 const STORAGE_KEY = 'preferred-mode'
-const MOBILE_BREAKPOINT = 768
 
 function getInitialMode(): Mode {
   if (typeof window === 'undefined') return 'terminal'
@@ -27,9 +26,8 @@ function getInitialMode(): Mode {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved === 'terminal' || saved === 'nav') return saved
 
-  // Default: mobile → nav, desktop → terminal
-  const isMobile = window.innerWidth < MOBILE_BREAKPOINT
-  return isMobile ? 'nav' : 'terminal'
+  // Default to nav (profile) view for new users
+  return 'nav'
 }
 
 export function ModeProvider({ children }: { children: ReactNode }) {
@@ -51,8 +49,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) return
 
-      const isMobile = window.innerWidth < MOBILE_BREAKPOINT
-      setModeState(isMobile ? 'nav' : 'terminal')
+      setModeState('nav')
     }
 
     window.addEventListener('resize', handleResize)
